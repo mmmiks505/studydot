@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Studydot</title>
+  <meta name="description" content="Studydot: make study sets and learn them with flashcards and quizzes.">
+  <meta name="apple-mobile-web-app-title" content="Studydot">
+  <meta name="theme-color" content="#f5f5f5">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=Quicksand:wght@600;700&family=Playfair+Display:ital,wght@1,600;1,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Opening animation: the blue dot drops in and bounces, then the name appears -->
+  <div class="splash" id="splash" aria-hidden="true">
+    <div class="splash-word"><span class="splash-text">studydot</span><span class="splash-dot"></span></div>
+  </div>
+
+  <!-- Sets: every study set you've made -->
+  <main class="view narrow" id="view-sets" data-view="sets">
+    <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Sets</h1></header>
+    <section class="card">
+      <div class="list-head">
+        <p class="muted" id="sets-count"></p>
+        <button type="button" class="add-btn" id="new-set">+ New set</button>
+      </div>
+      <ul class="sets" id="sets-list"></ul>
+      <div class="empty" id="sets-empty" hidden>
+        <p class="empty-big">📚</p>
+        <h2>No study sets yet</h2>
+        <p class="muted">A set is a list of words or questions with their answers. Make one for vocab, a test, anything.</p>
+        <div class="empty-actions">
+          <button type="button" class="primary" id="empty-new">Make a set</button>
+          <button type="button" id="empty-sample">Try a sample set</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Study: pick a set and a way to study it -->
+  <main class="view narrow" id="view-study" data-view="study" hidden>
+    <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Study</h1></header>
+    <section class="card" id="study-recent-card">
+      <h2>Keep going</h2>
+      <p class="muted">Pick a set, then choose Flashcards or Quiz.</p>
+      <ul class="study-list" id="study-list"></ul>
+      <div class="empty" id="study-empty" hidden>
+        <p class="empty-big">✏️</p>
+        <p class="muted">Make a set first, then come back here to study it.</p>
+        <button type="button" class="primary" id="study-make">Make a set</button>
+      </div>
+    </section>
+    <section class="card tips">
+      <h2>Two ways to study</h2>
+      <div class="ways">
+        <div class="way"><span class="way-icon">🃏</span><div><strong>Flashcards</strong><p class="muted">Tap a card to flip it. Mark if you knew it, then go over the ones you missed.</p></div></div>
+        <div class="way"><span class="way-icon">✅</span><div><strong>Quiz</strong><p class="muted">Pick the right answer out of four. You get a score at the end.</p></div></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Profile: account and settings -->
+  <main class="view narrow" id="view-profile" data-view="profile" hidden>
+    <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Profile</h1></header>
+    <section class="card account" id="account-card">
+      <div id="acct-off">
+        <h2>Save your sets</h2>
+        <p class="muted" id="acct-off-note">Accounts are almost ready. For now your sets are saved on this device.</p>
+      </div>
+      <div id="acct-back" hidden>
+        <h2>Welcome back 👋</h2>
+        <p class="muted">Log in as <strong id="acct-remembered"></strong> to see your sets.</p>
+        <div class="acct-actions">
+          <button type="button" class="primary" id="acct-quick">Log in</button>
+          <button type="button" class="link-btn" id="acct-forget">Not you?</button>
+        </div>
+      </div>
+      <div id="acct-out" hidden>
+        <h2>Save your sets</h2>
+        <p class="muted">Make a free account with your email. Your sets are saved to it and show up on every device you log in on.</p>
+        <div class="acct-actions">
+          <button type="button" class="primary" id="acct-signup">Create account</button>
+          <button type="button" id="acct-login">Log in</button>
+        </div>
+      </div>
+      <div id="acct-in" class="acct-in" hidden>
+        <div class="acct-who">
+          <span class="small muted">Logged in as</span>
+          <span class="acct-email" id="acct-email"></span>
+          <span class="small muted" id="sync-status"></span>
+        </div>
+        <button type="button" id="acct-logout">Log out</button>
+      </div>
+    </section>
+    <section class="card settings">
+      <h2>Settings</h2>
+      <label class="field">
+        <span>Your name</span>
+        <input id="name-input" maxlength="40" placeholder="Add your name">
+      </label>
+      <div class="setting">
+        <span>Color</span>
+        <div class="swatches" id="swatches" role="radiogroup" aria-label="Color"></div>
+      </div>
+      <div class="setting">
+        <span>Dark mode</span>
+        <label class="switch"><input type="checkbox" id="dark-toggle"><span></span></label>
+      </div>
+      <p class="small muted" id="storage-note">Your sets are saved in this browser. Make an account to keep them safe and use them on other devices.</p>
+    </section>
+  </main>
+
+  <!-- One set: its cards and buttons to study it -->
+  <section class="screen" id="set-screen" hidden aria-labelledby="set-title">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="set-back">‹ Back</button>
+        <button type="button" id="set-edit">Edit</button>
+      </header>
+      <h1 id="set-title"></h1>
+      <p class="muted" id="set-sub"></p>
+      <div class="mode-buttons">
+        <button type="button" class="mode-btn" id="go-cards"><span>🃏</span>Flashcards</button>
+        <button type="button" class="mode-btn" id="go-quiz"><span>✅</span>Quiz</button>
+      </div>
+      <ul class="terms card" id="set-terms"></ul>
+    </div>
+  </section>
+
+  <!-- Make or change a set -->
+  <section class="screen" id="edit-screen" hidden aria-labelledby="edit-heading">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="edit-cancel">‹ Cancel</button>
+        <button type="button" class="primary" id="edit-save">Save</button>
+      </header>
+      <h1 id="edit-heading">New set</h1>
+      <form id="edit-form" class="edit-form" autocomplete="off">
+        <label class="field card">
+          <span>Set name</span>
+          <input id="edit-title" maxlength="80" required placeholder="e.g. Spanish Chapter 3">
+        </label>
+        <ol class="edit-cards" id="edit-cards"></ol>
+        <button type="button" class="add-card" id="add-card">+ Add a card</button>
+        <button type="button" class="danger" id="edit-delete" hidden>Delete this set</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Flashcards -->
+  <section class="screen study-screen" id="cards-screen" hidden aria-label="Flashcards">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="cards-back">‹ Done</button>
+        <span class="progress-text" id="cards-progress"></span>
+        <button type="button" id="cards-shuffle" title="Shuffle">🔀 Shuffle</button>
+      </header>
+      <div class="bar"><div class="bar-fill" id="cards-bar"></div></div>
+      <div id="cards-play">
+        <button type="button" class="flashcard" id="flashcard" aria-live="polite">
+          <span class="fc-inner">
+            <span class="fc-face fc-front"><span class="fc-label">Term</span><span class="fc-text" id="fc-front"></span></span>
+            <span class="fc-face fc-back"><span class="fc-label">Answer</span><span class="fc-text" id="fc-back"></span></span>
+          </span>
+        </button>
+        <p class="muted center">Tap the card to flip it</p>
+        <div class="judge">
+          <button type="button" class="judge-btn miss" id="fc-miss">Still learning</button>
+          <button type="button" class="judge-btn got" id="fc-got">Got it</button>
+        </div>
+      </div>
+      <div class="result card" id="cards-result" hidden>
+        <p class="empty-big" id="cards-emoji"></p>
+        <h2 id="cards-score"></h2>
+        <p class="muted" id="cards-msg"></p>
+        <div class="empty-actions">
+          <button type="button" class="primary" id="cards-missed">Study the ones I missed</button>
+          <button type="button" id="cards-again">Start over</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section class="screen study-screen" id="quiz-screen" hidden aria-label="Quiz">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="quiz-back">‹ Done</button>
+        <span class="progress-text" id="quiz-progress"></span>
+        <span></span>
+      </header>
+      <div class="bar"><div class="bar-fill" id="quiz-bar"></div></div>
+      <div id="quiz-play">
+        <div class="card quiz-q">
+          <span class="fc-label">What does this mean?</span>
+          <p class="quiz-term" id="quiz-term"></p>
+        </div>
+        <div class="choices" id="quiz-choices"></div>
+        <button type="button" class="primary next-btn" id="quiz-next" hidden>Next</button>
+      </div>
+      <div class="result card" id="quiz-result" hidden>
+        <p class="empty-big" id="quiz-emoji"></p>
+        <h2 id="quiz-score"></h2>
+        <p class="muted" id="quiz-msg"></p>
+        <div class="empty-actions">
+          <button type="button" class="primary" id="quiz-again">Take it again</button>
+          <button type="button" id="quiz-cards">Study with flashcards</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Log in / create account -->
+  <section class="screen" id="account-screen" hidden aria-labelledby="acct-title">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="acct-cancel">‹ Back</button>
+      </header>
+      <h1 id="acct-title">Log in</h1>
+      <form class="card edit-form" id="acct-form" autocomplete="on">
+        <div class="seg" role="group">
+          <button type="button" data-acct-mode="login">Log in</button>
+          <button type="button" data-acct-mode="signup">Create account</button>
+        </div>
+        <label class="field"><span>Email</span><input id="acct-email-input" type="email" autocomplete="email" required></label>
+        <label class="field"><span>Password</span><input id="acct-password" type="password" autocomplete="current-password" minlength="6" required></label>
+        <p class="error" id="acct-error" hidden></p>
+        <p class="note" id="acct-note" hidden></p>
+        <button type="submit" class="primary" id="acct-submit">Log in</button>
+        <button type="button" class="link-btn" id="acct-forgot">Forgot password?</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Yes/no question -->
+  <div class="dialog" id="dialog" hidden>
+    <div class="dialog-card card" role="alertdialog" aria-modal="true" aria-labelledby="dialog-text">
+      <p id="dialog-text"></p>
+      <div class="dialog-actions">
+        <button type="button" id="dialog-no">Cancel</button>
+        <button type="button" class="primary" id="dialog-yes">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <nav class="tabbar" aria-label="Main">
+    <a href="#sets" class="tab" data-tab="sets">
+      <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Zm-4 4a1 1 0 0 1 1 1v11a1 1 0 0 0 1 1h11a1 1 0 1 1 0 2H6a3 3 0 0 1-3-3V8a1 1 0 0 1 1-1Z"/></svg></span>
+      <span>Sets</span>
+    </a>
+    <a href="#study" class="tab" data-tab="study">
+      <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 1.5 8.5 12 14l8.5-4.45V16a1 1 0 1 0 2 0V8.5L12 3Zm-6.5 9.6v3.9c0 .4.2.7.5.9 1.8 1.1 3.9 1.6 6 1.6s4.2-.5 6-1.6c.3-.2.5-.5.5-.9v-3.9L12 16l-6.5-3.4Z"/></svg></span>
+      <span>Study</span>
+    </a>
+    <a href="#profile" class="tab" data-tab="profile">
+      <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.6 20.3C4.6 16.4 8 14.5 12 14.5s7.4 1.9 8.4 5.8a1.2 1.2 0 0 1-1.2 1.5H4.8a1.2 1.2 0 0 1-1.2-1.5Z"/></svg></span>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <script src="app.js"></script>
+  <script type="module" src="sync.js"></script>
+</body>
+</html>
