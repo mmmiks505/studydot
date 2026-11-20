@@ -572,7 +572,13 @@
   function showCard() {
     const c = deck[pos];
     const sd = sides(findSet(deckSet), c);
-    $("flashcard").classList.remove("flipped");
+    // Turn the card back to its front instantly (no flip animation), so the next
+    // card's answer is never seen while it turns.
+    const fc = $("flashcard");
+    fc.classList.add("instant");
+    fc.classList.remove("flipped");
+    void fc.offsetWidth;
+    requestAnimationFrame(() => requestAnimationFrame(() => fc.classList.remove("instant")));
     $("fc-front").textContent = sd.q;
     $("fc-back").textContent = sd.back;
     $("fc-front-label").textContent = sd.qLabel;
