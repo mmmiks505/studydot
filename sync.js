@@ -1,10 +1,17 @@
 // Studydot accounts: email + password sign-in with Firebase, and saving your sets
 // to the account so they show up on every device. Works the same way as Daydot's.
-// Until FIREBASE_CONFIG is filled in, Studydot saves in the browser only.
+// If this can't connect (offline), Studydot still works and saves in the browser.
 
 // Public web settings for the Studydot Firebase project (safe to publish; the
 // database rules in firestore.rules are what keep each person's sets private).
-const FIREBASE_CONFIG = null;
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBhFDjcv28upPdWxN9fy-aZtcO1ogXBynA",
+  authDomain: "studydot-app.firebaseapp.com",
+  projectId: "studydot-app",
+  storageBucket: "studydot-app.firebasestorage.app",
+  messagingSenderId: "194586324785",
+  appId: "1:194586324785:web:d2ec3f38091968103fca10",
+};
 
 const $ = (id) => document.getElementById(id);
 const FB = "https://www.gstatic.com/firebasejs/10.14.1/";
