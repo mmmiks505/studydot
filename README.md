@@ -2,6 +2,7 @@
 
 A simple study app: make sets of words or questions with their answers, then learn
 them with flashcards or a quiz. Works on phones and computers.
+Live at https://mmmiks505.github.io/studydot/
 
 - Three sections: **Sets** (your study sets), **Study** (pick a set and a way to study), **Profile** (account and settings).
 - Free accounts (email and password, via Firebase project `studydot-app`) save sets
