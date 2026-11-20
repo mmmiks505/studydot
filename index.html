@@ -46,7 +46,7 @@
     <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Study</h1></header>
     <section class="card" id="study-recent-card">
       <h2>Keep going</h2>
-      <p class="muted">Pick a set, then choose Flashcards or Quiz.</p>
+      <p class="muted">Pick a set, then choose how to study it.</p>
       <ul class="study-list" id="study-list"></ul>
       <div class="empty" id="study-empty" hidden>
         <p class="empty-big">✏️</p>
@@ -55,11 +55,24 @@
       </div>
     </section>
     <section class="card tips">
-      <h2>Two ways to study</h2>
+      <h2>Three ways to study</h2>
       <div class="ways">
         <div class="way"><span class="way-icon">🃏</span><div><strong>Flashcards</strong><p class="muted">Tap a card to flip it. Mark if you knew it, then go over the ones you missed.</p></div></div>
         <div class="way"><span class="way-icon">✅</span><div><strong>Quiz</strong><p class="muted">Pick the right answer out of four. You get a score at the end.</p></div></div>
+        <div class="way"><span class="way-icon">✍️</span><div><strong>Write</strong><p class="muted">Type the answer yourself. Great for spelling and accents in Spanish, French, Latin and Mandarin.</p></div></div>
       </div>
+    </section>
+  </main>
+
+  <!-- SAT: ready-made sets for SAT prep -->
+  <main class="view narrow" id="view-sat" data-view="sat" hidden>
+    <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>SAT</h1></header>
+    <section class="card sat-hero">
+      <h2>Get ready for the SAT</h2>
+      <p class="muted">Ready-made sets for vocab and math. Study them right here, or save one to your sets to add your own cards.</p>
+    </section>
+    <section class="card">
+      <ul class="study-list" id="sat-list"></ul>
     </section>
   </main>
 
@@ -126,6 +139,14 @@
       <div class="mode-buttons">
         <button type="button" class="mode-btn" id="go-cards"><span>🃏</span>Flashcards</button>
         <button type="button" class="mode-btn" id="go-quiz"><span>✅</span>Quiz</button>
+        <button type="button" class="mode-btn" id="go-write"><span>✍️</span>Write</button>
+      </div>
+      <div class="direction">
+        <span class="small muted">Show first</span>
+        <div class="seg" id="dir-seg" role="group" aria-label="Which side to show first">
+          <button type="button" data-dir="term" id="dir-term">Term</button>
+          <button type="button" data-dir="answer" id="dir-answer">Answer</button>
+        </div>
       </div>
       <ul class="terms card" id="set-terms"></ul>
     </div>
@@ -140,14 +161,21 @@
       </header>
       <h1 id="edit-heading">New set</h1>
       <form id="edit-form" class="edit-form" autocomplete="off">
-        <label class="field card">
-          <span>Set name</span>
-          <input id="edit-title" maxlength="80" required placeholder="e.g. Spanish Chapter 3">
-        </label>
+        <div class="card edit-top">
+          <label class="field">
+            <span>Set name</span>
+            <input id="edit-title" maxlength="80" required placeholder="e.g. Spanish Chapter 3">
+          </label>
+          <div class="lang-row">
+            <label class="field"><span>Term language</span><select id="edit-lang"></select></label>
+            <label class="field"><span>Answer language</span><select id="edit-lang2"></select></label>
+          </div>
+        </div>
         <ol class="edit-cards" id="edit-cards"></ol>
         <button type="button" class="add-card" id="add-card">+ Add a card</button>
         <button type="button" class="danger" id="edit-delete" hidden>Delete this set</button>
       </form>
+      <div class="accent-bar" id="edit-accents" hidden></div>
     </div>
   </section>
 
@@ -163,8 +191,8 @@
       <div id="cards-play">
         <button type="button" class="flashcard" id="flashcard" aria-live="polite">
           <span class="fc-inner">
-            <span class="fc-face fc-front"><span class="fc-label">Term</span><span class="fc-text" id="fc-front"></span></span>
-            <span class="fc-face fc-back"><span class="fc-label">Answer</span><span class="fc-text" id="fc-back"></span></span>
+            <span class="fc-face fc-front"><span class="fc-label" id="fc-front-label">Term</span><span class="fc-text" id="fc-front"></span><span class="say" role="button" tabindex="0" data-say="front" aria-label="Say it out loud">🔊</span></span>
+            <span class="fc-face fc-back"><span class="fc-label" id="fc-back-label">Answer</span><span class="fc-text" id="fc-back"></span><span class="say" role="button" tabindex="0" data-say="back" aria-label="Say it out loud">🔊</span></span>
           </span>
         </button>
         <p class="muted center">Tap the card to flip it</p>
@@ -196,8 +224,9 @@
       <div class="bar"><div class="bar-fill" id="quiz-bar"></div></div>
       <div id="quiz-play">
         <div class="card quiz-q">
-          <span class="fc-label">What does this mean?</span>
+          <span class="fc-label" id="quiz-label">What does this mean?</span>
           <p class="quiz-term" id="quiz-term"></p>
+          <button type="button" class="say" data-say="quiz" aria-label="Say it out loud">🔊</button>
         </div>
         <div class="choices" id="quiz-choices"></div>
         <button type="button" class="primary next-btn" id="quiz-next" hidden>Next</button>
@@ -209,6 +238,39 @@
         <div class="empty-actions">
           <button type="button" class="primary" id="quiz-again">Take it again</button>
           <button type="button" id="quiz-cards">Study with flashcards</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Write: type the answer -->
+  <section class="screen study-screen" id="write-screen" hidden aria-label="Write">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="write-back">‹ Done</button>
+        <span class="progress-text" id="write-progress"></span>
+        <span></span>
+      </header>
+      <div class="bar"><div class="bar-fill" id="write-bar"></div></div>
+      <form id="write-play" autocomplete="off">
+        <div class="card quiz-q">
+          <span class="fc-label" id="write-label">Type the answer</span>
+          <p class="quiz-term" id="write-term"></p>
+          <button type="button" class="say" data-say="write" aria-label="Say it out loud">🔊</button>
+        </div>
+        <input id="write-input" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Type your answer" aria-label="Your answer">
+        <div class="accent-bar inline" id="write-accents" hidden></div>
+        <div class="write-feedback" id="write-feedback" hidden></div>
+        <button type="submit" class="primary next-btn" id="write-check">Check</button>
+        <button type="button" class="link-btn" id="write-override" hidden>I was right, count it</button>
+      </form>
+      <div class="result card" id="write-result" hidden>
+        <p class="empty-big" id="write-emoji"></p>
+        <h2 id="write-score"></h2>
+        <p class="muted" id="write-msg"></p>
+        <div class="empty-actions">
+          <button type="button" class="primary" id="write-missed">Practice the ones I missed</button>
+          <button type="button" id="write-again">Start over</button>
         </div>
       </div>
     </div>
@@ -258,12 +320,17 @@
       <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 1.5 8.5 12 14l8.5-4.45V16a1 1 0 1 0 2 0V8.5L12 3Zm-6.5 9.6v3.9c0 .4.2.7.5.9 1.8 1.1 3.9 1.6 6 1.6s4.2-.5 6-1.6c.3-.2.5-.5.5-.9v-3.9L12 16l-6.5-3.4Z"/></svg></span>
       <span>Study</span>
     </a>
+    <a href="#sat" class="tab" data-tab="sat">
+      <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7.5 12a1 1 0 0 0 0 2h9a1 1 0 1 0 0-2h-9Zm0 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2h-6Z"/></svg></span>
+      <span>SAT</span>
+    </a>
     <a href="#profile" class="tab" data-tab="profile">
       <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.5"/><path d="M3.6 20.3C4.6 16.4 8 14.5 12 14.5s7.4 1.9 8.4 5.8a1.2 1.2 0 0 1-1.2 1.5H4.8a1.2 1.2 0 0 1-1.2-1.5Z"/></svg></span>
       <span>Profile</span>
     </a>
   </nav>
 
+  <script src="sat.js"></script>
   <script src="app.js"></script>
   <script type="module" src="sync.js"></script>
 </body>

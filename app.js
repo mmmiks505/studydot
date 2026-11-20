@@ -21,6 +21,79 @@
     gray:   { pastel: "#e0e0e0", accent: "#474747" },
   };
 
+  /* ---------- languages ---------- */
+  // Each set can say what language its terms and answers are in. That decides the
+  // accent buttons shown while typing, the voice used to read words out loud, and,
+  // for Mandarin, an extra Pinyin box on each card.
+  const PINYIN_KEYS = "ā á ǎ à ē é ě è ī í ǐ ì ō ó ǒ ò ū ú ǔ ù ǖ ǘ ǚ ǜ ü";
+  const LANGS = {
+    "":  { name: "None",     voice: "",      keys: "" },
+    en:  { name: "English",  voice: "en-US", keys: "" },
+    es:  { name: "Spanish",  voice: "es-ES", keys: "á é í ó ú ñ ü ¿ ¡" },
+    fr:  { name: "French",   voice: "fr-FR", keys: "é è ê ë à â ç î ï ô û ù ü œ" },
+    la:  { name: "Latin",    voice: "",      keys: "ā ē ī ō ū ȳ" },
+    zh:  { name: "Mandarin", voice: "zh-CN", keys: "" },
+  };
+  const langName = (code, fallback) => (code && LANGS[code] ? LANGS[code].name : fallback);
+  const isZh = (s) => s && s.lang === "zh";
+
+  // Read a word out loud with the phone's or computer's built-in voice.
+  const canSpeak = (code) => !!(code && LANGS[code] && LANGS[code].voice && "speechSynthesis" in window);
+  function speak(text, code) {
+    if (!canSpeak(code) || !text) return;
+    const voiceLang = LANGS[code].voice;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = voiceLang;
+    const voice = speechSynthesis.getVoices().find((v) => v.lang.replace("_", "-").startsWith(voiceLang.slice(0, 2)));
+    if (voice) u.voice = voice;
+    u.rate = 0.9;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }
+
+  // Turn "ni3 hao3" into "nǐ hǎo", so pinyin can be typed with tone numbers.
+  const TONES = { a: "āáǎà", e: "ēéěè", i: "īíǐì", o: "ōóǒò", u: "ūúǔù", "ü": "ǖǘǚǜ" };
+  function numberedToMarks(text) {
+    return text.toLowerCase().replace(/v/g, "ü").replace(/u:/g, "ü").replace(/([a-zü]+)([1-5])/g, (m, syl, tone) => {
+      const t = Number(tone);
+      if (t === 5) return syl;
+      let i = syl.search(/[ae]/);
+      if (i < 0) i = syl.indexOf("ou");
+      if (i < 0) { for (let k = syl.length - 1; k >= 0; k--) if (TONES[syl[k]]) { i = k; break; } }
+      if (i < 0) return syl;
+      return syl.slice(0, i) + TONES[syl[i]][t - 1] + syl.slice(i + 1);
+    });
+  }
+  const stripMarks = (s) => s.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC");
+  const tidy = (s) => s.toLowerCase().normalize("NFC").replace(/[.,!?¿¡;:"“”()]/g, "").replace(/['’]/g, "'").replace(/\s+/g, " ").trim();
+
+  // Check a typed answer. Answers like "to love, to like" or "big / large" accept any part.
+  // Returns "right", "accents" (right except for accents or tones) or "wrong".
+  function checkAnswer(typed, answer, pinyin) {
+    const fix = (s) => tidy(pinyin ? numberedToMarks(s) : s);
+    const t = fix(typed);
+    if (!t) return "wrong";
+    const options = [answer, ...answer.split(/[,;/]/)].map(fix).filter(Boolean);
+    const squash = (s) => (pinyin ? s.replace(/[\s']/g, "") : s);
+    if (options.some((o) => squash(o) === squash(t))) return "right";
+    if (options.some((o) => squash(stripMarks(o)) === squash(stripMarks(t)))) return "accents";
+    return "wrong";
+  }
+
+  // A row of accent buttons that types into whichever box has focus.
+  function fillKeys(bar, keys) {
+    bar.innerHTML = keys ? keys.split(" ").map((k) => `<button type="button" class="key" data-key="${k}">${k}</button>`).join("") : "";
+    bar.hidden = !keys;
+  }
+  function typeInto(el, text) {
+    if (!el) return;
+    const start = el.selectionStart ?? el.value.length, end = el.selectionEnd ?? el.value.length;
+    el.value = el.value.slice(0, start) + text + el.value.slice(end);
+    el.selectionStart = el.selectionEnd = start + text.length;
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.focus();
+  }
+
   /* ---------- saving ---------- */
   function loadLocal() {
     try {
@@ -33,7 +106,18 @@
     if (window.studydotSync) window.studydotSync.queue();
   }
   const liveSets = () => data.sets.filter((s) => !s.deleted);
-  const findSet = (id) => data.sets.find((s) => s.id === id && !s.deleted);
+  const SAT = window.SAT_SETS || [];
+  const findSet = (id) => data.sets.find((s) => s.id === id && !s.deleted) || SAT.find((s) => s.id === id);
+  // Copy a ready-made SAT set into your own sets, so you can change it.
+  function saveCopy(id) {
+    const src = SAT.find((s) => s.id === id);
+    if (!src) return;
+    const copy = { id: uid(), title: src.title, lang: src.lang, lang2: src.lang2, updated: Date.now(),
+      cards: src.cards.map((c) => ({ id: uid(), term: c.term, def: c.def })) };
+    data.sets.unshift(copy);
+    save(); render();
+    toast(`Saved "${src.title}" to your sets`);
+  }
 
   // Used by sync.js: combine the account's copy with this device's, set by set
   // (the most recently changed copy of each set wins).
@@ -118,7 +202,7 @@
   });
 
   /* ---------- tabs ---------- */
-  const TABS = ["sets", "study", "profile"];
+  const TABS = ["sets", "study", "sat", "profile"];
   function showTab() {
     const tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "sets";
     closeAll();
@@ -140,7 +224,7 @@
       <li><button type="button" class="set-row" data-open="${s.id}">
         <span class="set-badge">${esc((s.title.trim()[0] || "?").toLowerCase())}</span>
         <span class="set-info"><span class="set-name">${esc(s.title)}</span>
-          <span class="set-meta">${plural(s.cards.length, "card")}${s.studied ? ` · studied ${ago(s.studied)}` : ""}</span></span>
+          <span class="set-meta">${s.lang && s.lang !== "en" ? `${langName(s.lang)} · ` : ""}${plural(s.cards.length, "card")}${s.studied ? ` · studied ${ago(s.studied)}` : ""}</span></span>
         <span class="chev" aria-hidden="true">›</span>
       </button></li>`).join("");
 
@@ -155,6 +239,19 @@
         <span class="study-btns">
           <button type="button" data-cards="${s.id}">🃏 Cards</button>
           <button type="button" data-quiz="${s.id}">✅ Quiz</button>
+          <button type="button" data-write="${s.id}">✍️ Write</button>
+        </span>
+      </li>`).join("");
+    // SAT tab: the ready-made sets.
+    $("sat-list").innerHTML = SAT.map((s) => `
+      <li class="study-row">
+        <span class="set-badge">${s.id === "sat-math" ? "∑" : "A"}</span>
+        <span class="set-info" data-open="${s.id}"><span class="set-name">${esc(s.title)}</span>
+          <span class="set-meta">${esc(s.blurb)} · ${plural(s.cards.length, "card")}</span></span>
+        <span class="study-btns">
+          <button type="button" data-cards="${s.id}">🃏 Cards</button>
+          <button type="button" data-quiz="${s.id}">✅ Quiz</button>
+          <button type="button" data-write="${s.id}">✍️ Write</button>
         </span>
       </li>`).join("");
     if (currentSet && !$("set-screen").hidden) renderSet();
@@ -163,8 +260,10 @@
     const open = e.target.closest("[data-open]");
     const cards = e.target.closest("[data-cards]");
     const quiz = e.target.closest("[data-quiz]");
+    const write = e.target.closest("[data-write]");
     if (cards) startCards(cards.dataset.cards);
     else if (quiz) startQuiz(quiz.dataset.quiz);
+    else if (write) startWrite(write.dataset.write);
     else if (open) openSet(open.dataset.open);
   });
   $("new-set").addEventListener("click", () => openEditor(null));
@@ -173,7 +272,7 @@
   $("empty-sample").addEventListener("click", () => {
     const now = Date.now();
     data.sets.unshift({
-      id: uid(), title: "Spanish basics", updated: now,
+      id: uid(), title: "Spanish basics", lang: "es", lang2: "en", updated: now,
       cards: [
         ["hola", "hello"], ["gracias", "thank you"], ["por favor", "please"], ["adiós", "goodbye"],
         ["perro", "dog"], ["gato", "cat"], ["agua", "water"], ["libro", "book"],
@@ -195,36 +294,132 @@
     const s = findSet(currentSet);
     if (!s) { if (!$("set-screen").hidden) closeScreen(); return; }
     $("set-title").textContent = s.title;
-    $("set-sub").textContent = plural(s.cards.length, "card") + (s.best != null ? ` · best quiz score ${s.best}%` : "");
+    $("set-edit").textContent = s.builtIn ? "Save to my sets" : "Edit";
+    const langs = s.lang ? `${langName(s.lang)}${s.lang2 ? ` → ${langName(s.lang2)}` : ""} · ` : "";
+    $("set-sub").textContent = langs + plural(s.cards.length, "card") + (s.best != null ? ` · best quiz score ${s.best}%` : "");
+    // Which side to show first. Mandarin always shows the character, and you choose
+    // whether to answer with the pinyin or the meaning.
+    const zh = isZh(s);
+    $("dir-seg").previousElementSibling.textContent = zh ? "Answer with" : "Show first";
+    $("dir-term").textContent = zh ? "Pinyin" : langName(s.lang, "Term");
+    $("dir-answer").textContent = zh ? "Meaning" : langName(s.lang2, "Answer");
+    $("dir-term").setAttribute("aria-pressed", !s.flip);
+    $("dir-answer").setAttribute("aria-pressed", !!s.flip);
     $("set-terms").innerHTML = s.cards.length
-      ? s.cards.map((c) => `<li><span class="t">${esc(c.term)}</span><span class="d">${esc(c.def)}</span></li>`).join("")
+      ? s.cards.map((c) => `<li><span class="t">${esc(c.term)}${zh && c.pin ? `<span class="pin">${esc(c.pin)}</span>` : ""}</span><span class="d">${esc(c.def)}</span></li>`).join("")
       : `<li><span class="muted">No cards yet. Tap Edit to add some.</span></li>`;
   }
+  $("dir-seg").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-dir]");
+    const s = findSet(currentSet);
+    if (!b || !s) return;
+    s.flip = b.dataset.dir === "answer";
+    s.updated = Date.now();
+    save(); renderSet();
+  });
+
+  // What to show and what to answer for a card, depending on the set's direction.
+  function sides(s, c) {
+    if (isZh(s)) {
+      const meaningFirst = !!s.flip || !c.pin;
+      return {
+        q: c.term, qLang: "zh", qLabel: "Mandarin",
+        a: meaningFirst ? c.def : c.pin, aLang: meaningFirst ? s.lang2 : "", pinyin: !meaningFirst,
+        aLabel: meaningFirst ? langName(s.lang2, "Meaning") : "Pinyin",
+        back: [c.pin, c.def].filter(Boolean).join("\n"), backLabel: c.pin ? "Pinyin · meaning" : langName(s.lang2, "Meaning"),
+        ask: meaningFirst ? "What does this mean?" : "Which pinyin is right?",
+      };
+    }
+    const f = !!s.flip;
+    const q = f ? c.def : c.term, a = f ? c.term : c.def;
+    const qLang = f ? s.lang2 : s.lang, aLang = f ? s.lang : s.lang2;
+    const qLabel = langName(qLang, f ? "Answer" : "Term"), aLabel = langName(aLang, f ? "Term" : "Answer");
+    return { q, a, qLang, aLang, qLabel, aLabel, back: a, backLabel: aLabel, pinyin: false,
+      ask: aLang && LANGS[aLang] && aLang !== qLang ? `What is it in ${LANGS[aLang].name}?` : qLang ? "What does this mean?" : "Pick the right answer" };
+  }
   $("set-back").addEventListener("click", closeScreen);
-  $("set-edit").addEventListener("click", () => openEditor(currentSet));
+  $("set-edit").addEventListener("click", () => {
+    const s = findSet(currentSet);
+    if (s && s.builtIn) saveCopy(s.id); else openEditor(currentSet);
+  });
   $("go-cards").addEventListener("click", () => startCards(currentSet));
   $("go-quiz").addEventListener("click", () => startQuiz(currentSet));
+  $("go-write").addEventListener("click", () => startWrite(currentSet));
 
   /* ---------- making and changing a set ---------- */
   let editing = null; // set id, or null for a new set
-  function cardRow(c = { id: uid(), term: "", def: "" }) {
+  const EXAMPLES = { es: ["perro", "dog"], fr: ["le chien", "the dog"], la: ["canis", "dog"], zh: ["狗", "dog"] };
+  function cardRow(c = { id: uid(), term: "", def: "", pin: "" }) {
+    const lang = $("edit-lang").value, lang2 = $("edit-lang2").value;
+    const zh = lang === "zh";
+    const ex = EXAMPLES[lang] || ["mitochondria", "the powerhouse of the cell"];
     const li = document.createElement("li");
-    li.className = "edit-card";
+    li.className = "edit-card" + (zh ? " zh" : "");
     li.dataset.id = c.id;
     li.innerHTML = `
       <div class="edit-card-head"><button type="button" class="remove-card" aria-label="Remove this card">×</button></div>
       <div class="edit-card-fields">
-        <label class="field"><span>Term</span><textarea class="in-term" rows="1" maxlength="300" placeholder="e.g. perro">${esc(c.term)}</textarea></label>
-        <label class="field"><span>Answer</span><textarea class="in-def" rows="1" maxlength="600" placeholder="e.g. dog">${esc(c.def)}</textarea></label>
+        <label class="field"><span>${zh ? "Character" : esc(langName(lang, "Term"))}</span><textarea class="in-term" rows="1" maxlength="300" placeholder="e.g. ${esc(ex[0])}">${esc(c.term)}</textarea></label>
+        ${zh ? `<label class="field"><span>Pinyin</span><textarea class="in-pin" rows="1" maxlength="300" placeholder="e.g. gǒu or gou3">${esc(c.pin || "")}</textarea></label>` : ""}
+        <label class="field"><span>${zh ? "Meaning" : esc(langName(lang2, "Answer"))}</span><textarea class="in-def" rows="1" maxlength="600" placeholder="e.g. ${esc(ex[1])}">${esc(c.def)}</textarea></label>
       </div>`;
     return li;
   }
+  const readRows = () => [...$("edit-cards").children].map((li) => ({
+    id: li.dataset.id,
+    term: li.querySelector(".in-term").value.trim(),
+    pin: li.querySelector(".in-pin") ? numberedToMarks(li.querySelector(".in-pin").value.trim()) : "",
+    def: li.querySelector(".in-def").value.trim(),
+  }));
+  function fillLangSelect(sel, value) {
+    sel.innerHTML = Object.entries(LANGS).map(([code, l]) => `<option value="${code}">${l.name}</option>`).join("");
+    sel.value = value || "";
+  }
+  // Changing a language relabels the cards (and adds or removes the Pinyin box), keeping what's typed.
+  function relabelRows() {
+    const keep = readRows().map((c) => {
+      const old = [...$("edit-cards").children].find((li) => li.dataset.id === c.id);
+      const pin = old && old.querySelector(".in-pin") ? old.querySelector(".in-pin").value.trim() : c.pin;
+      return { ...c, pin };
+    });
+    const list = $("edit-cards");
+    list.innerHTML = "";
+    keep.forEach((c) => list.append(cardRow(c)));
+    list.querySelectorAll("textarea").forEach(grow);
+  }
+  $("edit-lang").addEventListener("change", () => {
+    if ($("edit-lang").value === "zh" && !$("edit-lang2").value) $("edit-lang2").value = "en";
+    if ($("edit-lang").value && $("edit-lang").value !== "en" && !$("edit-lang2").value) $("edit-lang2").value = "en";
+    relabelRows();
+  });
+  $("edit-lang2").addEventListener("change", relabelRows);
+
+  // Accent buttons for the box being typed in: Spanish, French and Latin letters,
+  // or pinyin tone marks for the Pinyin box.
+  let typingIn = null;
+  $("edit-cards").addEventListener("focusin", (e) => {
+    const t = e.target;
+    if (t.tagName !== "TEXTAREA") return;
+    typingIn = t;
+    const keys = t.classList.contains("in-pin") ? PINYIN_KEYS
+      : (LANGS[t.classList.contains("in-term") ? $("edit-lang").value : $("edit-lang2").value] || {}).keys;
+    fillKeys($("edit-accents"), keys);
+  });
+  $("edit-title").addEventListener("focus", () => { $("edit-accents").hidden = true; });
+  $("edit-accents").addEventListener("mousedown", (e) => e.preventDefault()); // keep the typing box focused
+  $("edit-accents").addEventListener("click", (e) => {
+    const k = e.target.closest("[data-key]");
+    if (k) typeInto(typingIn, k.dataset.key);
+  });
   function grow(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
   function openEditor(id) {
     editing = id;
     const s = id ? findSet(id) : null;
     $("edit-heading").textContent = s ? "Edit set" : "New set";
     $("edit-title").value = s ? s.title : "";
+    fillLangSelect($("edit-lang"), s ? s.lang : "");
+    fillLangSelect($("edit-lang2"), s ? s.lang2 : "");
+    $("edit-accents").hidden = true;
     $("edit-delete").hidden = !s;
     const list = $("edit-cards");
     list.innerHTML = "";
@@ -250,9 +445,11 @@
     if (next) next.querySelector(".in-term").focus(); else addCard();
   });
   $("edit-cards").addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey && e.target.classList.contains("in-term")) {
+    if (e.key === "Enter" && !e.shiftKey && (e.target.classList.contains("in-term") || e.target.classList.contains("in-pin"))) {
       e.preventDefault();
-      e.target.closest(".edit-card").querySelector(".in-def").focus();
+      const card = e.target.closest(".edit-card");
+      const pin = card.querySelector(".in-pin");
+      (e.target.classList.contains("in-term") && pin ? pin : card.querySelector(".in-def")).focus();
     }
   });
   function addCard() {
@@ -268,15 +465,15 @@
   function saveEditor() {
     const title = $("edit-title").value.trim();
     if (!title) { $("edit-title").focus(); toast("Give your set a name"); return; }
-    const cards = [...$("edit-cards").children].map((li) => ({
-      id: li.dataset.id,
-      term: li.querySelector(".in-term").value.trim(),
-      def: li.querySelector(".in-def").value.trim(),
-    })).filter((c) => c.term || c.def);
+    const lang = $("edit-lang").value, lang2 = $("edit-lang2").value;
+    const cards = readRows().filter((c) => c.term || c.def || c.pin).map((c) => {
+      if (lang !== "zh" || !c.pin) { const { pin, ...rest } = c; return rest; }
+      return c;
+    });
     const now = Date.now();
     let s = editing ? findSet(editing) : null;
-    if (s) Object.assign(s, { title, cards, updated: now });
-    else { s = { id: uid(), title, cards, updated: now }; data.sets.unshift(s); }
+    if (s) Object.assign(s, { title, cards, lang, lang2, updated: now });
+    else { s = { id: uid(), title, cards, lang, lang2, updated: now }; data.sets.unshift(s); }
     save(); render();
     closeScreen();
     if (!editing) openSet(s.id);
@@ -293,7 +490,7 @@
 
   /* ---------- flashcards ---------- */
   let deck = [], pos = 0, missed = [], got = 0, deckSet = null;
-  const usable = (s) => s.cards.filter((c) => c.term && c.def);
+  const usable = (s) => s.cards.filter((c) => c.term && (c.def || (isZh(s) && c.pin)));
   function startCards(id, only) {
     const s = findSet(id);
     if (!s) return;
@@ -307,9 +504,15 @@
   }
   function showCard() {
     const c = deck[pos];
+    const sd = sides(findSet(deckSet), c);
     $("flashcard").classList.remove("flipped");
-    $("fc-front").textContent = c.term;
-    $("fc-back").textContent = c.def;
+    $("fc-front").textContent = sd.q;
+    $("fc-back").textContent = sd.back;
+    $("fc-front-label").textContent = sd.qLabel;
+    $("fc-back-label").textContent = sd.backLabel;
+    const [sayFront, sayBack] = document.querySelectorAll("#flashcard .say");
+    sayFront.hidden = !canSpeak(sd.qLang);
+    sayBack.hidden = !canSpeak(isZh(findSet(deckSet)) ? "zh" : sd.aLang);
     $("cards-progress").textContent = `${pos + 1} of ${deck.length}`;
     $("cards-bar").style.width = `${(pos / deck.length) * 100}%`;
   }
@@ -325,7 +528,21 @@
     $("cards-msg").textContent = missed.length ? `${plural(missed.length, "card")} to keep practicing.` : "You knew every card. Nice work!";
     $("cards-missed").hidden = !missed.length;
   }
-  $("flashcard").addEventListener("click", () => $("flashcard").classList.toggle("flipped"));
+  $("flashcard").addEventListener("click", (e) => {
+    const say = e.target.closest(".say");
+    if (say) {
+      // The speaker button reads that side out loud instead of flipping the card.
+      const s = findSet(deckSet), c = deck[pos], sd = sides(s, c);
+      if (say.dataset.say === "front") speak(sd.q, sd.qLang);
+      else if (isZh(s)) speak(c.term, "zh");
+      else speak(sd.a, sd.aLang);
+      return;
+    }
+    $("flashcard").classList.toggle("flipped");
+  });
+  $("flashcard").addEventListener("keydown", (e) => {
+    if (e.target.closest(".say") && e.key === "Enter") { e.preventDefault(); e.stopPropagation(); e.target.click(); }
+  });
   $("fc-got").addEventListener("click", () => judge(true));
   $("fc-miss").addEventListener("click", () => judge(false));
   $("cards-shuffle").addEventListener("click", () => { deck = [...deck.slice(0, pos), ...shuffle(deck.slice(pos))]; showCard(); toast("Shuffled"); });
@@ -344,7 +561,7 @@
   function startQuiz(id) {
     const s = findSet(id);
     if (!s) return;
-    const cards = usable(s);
+    const cards = usable(s).filter((c) => sides(s, c).a);
     if (cards.length < 2) { toast("A quiz needs at least 2 cards with answers"); return; }
     quizSet = id; quiz = shuffle(cards); qpos = 0; right = 0;
     s.studied = Date.now(); save(); render();
@@ -355,16 +572,23 @@
   function showQuestion() {
     const c = quiz[qpos];
     const s = findSet(quizSet);
+    const sd = sides(s, c);
     // The right answer plus up to 3 others from the same set.
-    const others = shuffle([...new Set(usable(s).map((x) => x.def).filter((d) => d !== c.def))]).slice(0, 3);
-    const choices = shuffle([c.def, ...others]);
-    $("quiz-term").textContent = c.term;
+    const others = shuffle([...new Set(usable(s).map((x) => sides(s, x).a).filter((d) => d && d !== sd.a))]).slice(0, 3);
+    const choices = shuffle([sd.a, ...others]);
+    $("quiz-term").textContent = sd.q;
+    $("quiz-label").textContent = sd.ask;
+    document.querySelector('[data-say="quiz"]').hidden = !canSpeak(sd.qLang);
     $("quiz-progress").textContent = `${qpos + 1} of ${quiz.length}`;
     $("quiz-bar").style.width = `${(qpos / quiz.length) * 100}%`;
     $("quiz-next").hidden = true;
     $("quiz-choices").innerHTML = choices.map((d) => `<button type="button" class="choice">${esc(d)}</button>`).join("");
-    [...$("quiz-choices").children].forEach((b, i) => { b.dataset.right = choices[i] === c.def ? "1" : ""; });
+    [...$("quiz-choices").children].forEach((b, i) => { b.dataset.right = choices[i] === sd.a ? "1" : ""; });
   }
+  document.querySelector('[data-say="quiz"]').addEventListener("click", () => {
+    const sd = sides(findSet(quizSet), quiz[qpos]);
+    speak(sd.q, sd.qLang);
+  });
   $("quiz-choices").addEventListener("click", (e) => {
     const b = e.target.closest(".choice");
     if (!b || b.disabled) return;
@@ -391,6 +615,100 @@
   $("quiz-again").addEventListener("click", () => { closeScreen(); startQuiz(quizSet); });
   $("quiz-cards").addEventListener("click", () => { closeScreen(); startCards(quizSet); });
   $("quiz-back").addEventListener("click", closeScreen);
+
+  /* ---------- write: type the answer ---------- */
+  let wlist = [], wpos = 0, wright = 0, wmissed = [], writeSet = null, checked = false, lastWrong = false;
+  function startWrite(id, only) {
+    const s = findSet(id);
+    if (!s) return;
+    const cards = only || usable(s).filter((c) => sides(s, c).a);
+    if (!cards.length) { toast("Add some cards with an answer first"); return; }
+    writeSet = id; wlist = shuffle(cards); wpos = 0; wright = 0; wmissed = [];
+    s.studied = Date.now(); save(); render();
+    $("write-play").hidden = false; $("write-result").hidden = true;
+    showWrite();
+    openScreen("write-screen");
+    setTimeout(() => $("write-input").focus(), 80);
+  }
+  function showWrite() {
+    const s = findSet(writeSet), c = wlist[wpos], sd = sides(s, c);
+    checked = false; lastWrong = false;
+    $("write-term").textContent = sd.q;
+    $("write-label").textContent = sd.pinyin ? "Type the pinyin" : `Type the ${sd.aLabel === "Answer" ? "answer" : sd.aLabel}`;
+    $("write-input").value = "";
+    $("write-input").disabled = false;
+    $("write-input").placeholder = sd.pinyin ? "Tone marks or numbers: ni3 hao3" : "Type your answer";
+    $("write-feedback").hidden = true;
+    $("write-override").hidden = true;
+    $("write-check").textContent = "Check";
+    $("write-progress").textContent = `${wpos + 1} of ${wlist.length}`;
+    $("write-bar").style.width = `${(wpos / wlist.length) * 100}%`;
+    document.querySelector('[data-say="write"]').hidden = !canSpeak(sd.qLang);
+    fillKeys($("write-accents"), sd.pinyin ? PINYIN_KEYS : (LANGS[sd.aLang] || {}).keys);
+  }
+  function feedback(kind, html) {
+    const f = $("write-feedback");
+    f.className = "write-feedback " + kind;
+    f.innerHTML = html;
+    f.hidden = false;
+  }
+  $("write-play").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if (checked) { nextWrite(); return; }
+    const s = findSet(writeSet), c = wlist[wpos], sd = sides(s, c);
+    const typed = $("write-input").value;
+    if (!typed.trim()) { $("write-input").focus(); return; }
+    const result = checkAnswer(typed, sd.a, sd.pinyin);
+    checked = true;
+    $("write-input").disabled = true;
+    if (result === "right") { wright++; feedback("good", "✓ Correct!"); }
+    else if (result === "accents") {
+      wright++;
+      feedback("close", `Almost! Watch the ${sd.pinyin ? "tones" : "accents"}: <strong>${esc(sd.a)}</strong>`);
+    } else {
+      lastWrong = true;
+      wmissed.push(c);
+      feedback("bad", `The answer is <strong>${esc(sd.a)}</strong>`);
+      $("write-override").hidden = false;
+    }
+    if (sd.pinyin || canSpeak(sd.aLang)) speak(isZh(s) ? c.term : sd.a, isZh(s) ? "zh" : sd.aLang);
+    $("write-check").textContent = wpos + 1 < wlist.length ? "Next" : "See my score";
+    $("write-check").focus();
+  });
+  // For typos: count a wrong answer as right.
+  $("write-override").addEventListener("click", () => {
+    if (!lastWrong) return;
+    lastWrong = false;
+    wright++;
+    wmissed.pop();
+    $("write-override").hidden = true;
+    feedback("good", "✓ Counted as right");
+    $("write-check").focus();
+  });
+  function nextWrite() {
+    wpos++;
+    if (wpos < wlist.length) { showWrite(); $("write-input").focus(); return; }
+    const pct = Math.round((wright / wlist.length) * 100);
+    $("write-bar").style.width = "100%";
+    $("write-progress").textContent = "Done!";
+    $("write-play").hidden = true; $("write-result").hidden = false;
+    $("write-emoji").textContent = pct === 100 ? "🏆" : pct >= 70 ? "🎉" : "💪";
+    $("write-score").textContent = `${wright} of ${wlist.length} right (${pct}%)`;
+    $("write-msg").textContent = wmissed.length ? `${plural(wmissed.length, "card")} to practice again.` : "You wrote every one right!";
+    $("write-missed").hidden = !wmissed.length;
+  }
+  $("write-accents").addEventListener("mousedown", (e) => e.preventDefault());
+  $("write-accents").addEventListener("click", (e) => {
+    const k = e.target.closest("[data-key]");
+    if (k && !$("write-input").disabled) typeInto($("write-input"), k.dataset.key);
+  });
+  document.querySelector('[data-say="write"]').addEventListener("click", () => {
+    const sd = sides(findSet(writeSet), wlist[wpos]);
+    speak(sd.q, sd.qLang);
+  });
+  $("write-missed").addEventListener("click", () => { closeScreen(); startWrite(writeSet, wmissed); });
+  $("write-again").addEventListener("click", () => { closeScreen(); startWrite(writeSet); });
+  $("write-back").addEventListener("click", closeScreen);
 
   /* ---------- Profile: settings ---------- */
   function applySettings() {
