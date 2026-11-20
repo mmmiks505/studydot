@@ -107,16 +107,31 @@
   }
   const liveSets = () => data.sets.filter((s) => !s.deleted);
   const SAT = window.SAT_SETS || [];
-  const findSet = (id) => data.sets.find((s) => s.id === id && !s.deleted) || SAT.find((s) => s.id === id);
-  // Copy a ready-made SAT set into your own sets, so you can change it.
+  // Ready-made language units (courses/*.js): one set per unit, grouped by language and level.
+  const COURSES = window.COURSES || [];
+  const COURSE_SETS = COURSES.flatMap((c) => c.levels.flatMap((lv, li) => lv.units.map((u, ui) => {
+    const id = `${c.lang}-${li}-${ui}`;
+    return {
+      id, title: `${lv.name}: ${u.title}`, unit: u.title, builtIn: true, course: c.lang, level: li,
+      lang: c.lang, lang2: "en",
+      cards: u.cards.map((x, i) => (c.lang === "zh"
+        ? { id: `${id}-${i}`, term: x[0], pin: x[1], def: x[2] }
+        : { id: `${id}-${i}`, term: x[0], def: x[1] })),
+    };
+  })));
+  const BUILT_IN = [...SAT, ...COURSE_SETS];
+  const findSet = (id) => data.sets.find((s) => s.id === id && !s.deleted) || BUILT_IN.find((s) => s.id === id);
+  const addedCopy = (id) => data.sets.find((s) => s.from === id && !s.deleted);
+  // Copy a ready-made set into your own sets, so you can study it from there and change it.
   function saveCopy(id) {
-    const src = SAT.find((s) => s.id === id);
+    const src = BUILT_IN.find((s) => s.id === id);
     if (!src) return;
-    const copy = { id: uid(), title: src.title, lang: src.lang, lang2: src.lang2, updated: Date.now(),
-      cards: src.cards.map((c) => ({ id: uid(), term: c.term, def: c.def })) };
+    if (addedCopy(id)) { toast("It's already in your sets"); return; }
+    const copy = { id: uid(), from: src.id, title: src.title, lang: src.lang, lang2: src.lang2, updated: Date.now(),
+      cards: src.cards.map((c) => ({ id: uid(), term: c.term, def: c.def, ...(c.pin ? { pin: c.pin } : {}) })) };
     data.sets.unshift(copy);
     save(); render();
-    toast(`Saved "${src.title}" to your sets`);
+    toast(`Added "${src.title}" to your sets`);
   }
 
   // Used by sync.js: combine the account's copy with this device's, set by set
@@ -202,7 +217,7 @@
   });
 
   /* ---------- tabs ---------- */
-  const TABS = ["sets", "study", "sat", "profile"];
+  const TABS = ["sets", "study", "langs", "sat", "profile"];
   function showTab() {
     const tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "sets";
     closeAll();
@@ -254,9 +269,60 @@
           <button type="button" data-write="${s.id}">✍️ Write</button>
         </span>
       </li>`).join("");
+    renderLangs();
     if (currentSet && !$("set-screen").hidden) renderSet();
   }
+
+  /* ---------- Languages tab: language → level → units ---------- */
+  const PICK_KEY = "studydot:langpick";
+  let pick = { lang: "", level: 0 };
+  try { pick = { ...pick, ...JSON.parse(localStorage.getItem(PICK_KEY)) }; } catch { /* first visit */ }
+  function renderLangs() {
+    $("lang-pick").innerHTML = COURSES.map((c) => `
+      <button type="button" class="lang-btn" role="radio" aria-checked="${c.lang === pick.lang}" data-pick-lang="${c.lang}">
+        <span class="lang-icon">${c.icon}</span><span>${esc(c.name)}</span>
+      </button>`).join("");
+    const course = COURSES.find((c) => c.lang === pick.lang);
+    $("level-card").hidden = !course;
+    if (!course) return;
+    if (!course.levels[pick.level]) pick.level = 0;
+    $("level-pick").innerHTML = course.levels.map((lv, i) => `
+      <button type="button" class="level-btn" role="radio" aria-checked="${i === pick.level}" data-pick-level="${i}">${esc(/\d$/.test(lv.name) ? "Level " + lv.name.slice(-1) : lv.name)}</button>`).join("");
+    const units = COURSE_SETS.filter((s) => s.course === course.lang && s.level === pick.level);
+    $("unit-list").innerHTML = units.map((s, i) => {
+      const added = addedCopy(s.id);
+      return `
+      <li class="study-row unit-row">
+        <span class="set-badge">${i + 1}</span>
+        <span class="set-info" data-open="${s.id}"><span class="set-name">${esc(s.unit)}</span>
+          <span class="set-meta">${plural(s.cards.length, "word")}</span></span>
+        <button type="button" class="add-unit ${added ? "added" : "primary"}" data-add="${s.id}" ${added ? "disabled" : ""}>${added ? "✓ Added" : "+ Add"}</button>
+        <span class="study-btns">
+          <button type="button" data-cards="${s.id}">🃏 Cards</button>
+          <button type="button" data-quiz="${s.id}">✅ Quiz</button>
+          <button type="button" data-write="${s.id}">✍️ Write</button>
+        </span>
+      </li>`;
+    }).join("");
+  }
+  const savePick = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(pick)); } catch { /* ignore */ } };
+  $("lang-pick").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pick-lang]");
+    if (!b) return;
+    if (pick.lang !== b.dataset.pickLang) pick = { lang: b.dataset.pickLang, level: 0 };
+    savePick(); renderLangs();
+    $("level-card").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("level-pick").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-pick-level]");
+    if (!b) return;
+    pick.level = Number(b.dataset.pickLevel);
+    savePick(); renderLangs();
+  });
+
   document.addEventListener("click", (e) => {
+    const add = e.target.closest("[data-add]");
+    if (add) { saveCopy(add.dataset.add); return; }
     const open = e.target.closest("[data-open]");
     const cards = e.target.closest("[data-cards]");
     const quiz = e.target.closest("[data-quiz]");
@@ -294,7 +360,8 @@
     const s = findSet(currentSet);
     if (!s) { if (!$("set-screen").hidden) closeScreen(); return; }
     $("set-title").textContent = s.title;
-    $("set-edit").textContent = s.builtIn ? "Save to my sets" : "Edit";
+    $("set-edit").textContent = s.builtIn ? (addedCopy(s.id) ? "✓ In your sets" : "+ Add to my sets") : "Edit";
+    $("set-edit").disabled = !!(s.builtIn && addedCopy(s.id));
     const langs = s.lang ? `${langName(s.lang)}${s.lang2 ? ` → ${langName(s.lang2)}` : ""} · ` : "";
     $("set-sub").textContent = langs + plural(s.cards.length, "card") + (s.best != null ? ` · best quiz score ${s.best}%` : "");
     // Which side to show first. Mandarin always shows the character, and you choose

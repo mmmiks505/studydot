@@ -64,6 +64,21 @@
     </section>
   </main>
 
+  <!-- Languages: ready-made vocab by language and high school level -->
+  <main class="view narrow" id="view-langs" data-view="langs" hidden>
+    <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Languages</h1></header>
+    <section class="card">
+      <h2>Pick a language</h2>
+      <div class="lang-pick" id="lang-pick" role="radiogroup" aria-label="Language"></div>
+    </section>
+    <section class="card" id="level-card" hidden>
+      <h2>Pick your level</h2>
+      <div class="level-pick" id="level-pick" role="radiogroup" aria-label="Level"></div>
+      <p class="muted unit-hint">Study a unit right here, or tap <strong>+ Add</strong> to put it in your sets.</p>
+      <ul class="study-list" id="unit-list"></ul>
+    </section>
+  </main>
+
   <!-- SAT: ready-made sets for SAT prep -->
   <main class="view narrow" id="view-sat" data-view="sat" hidden>
     <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>SAT</h1></header>
@@ -320,6 +335,10 @@
       <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 1.5 8.5 12 14l8.5-4.45V16a1 1 0 1 0 2 0V8.5L12 3Zm-6.5 9.6v3.9c0 .4.2.7.5.9 1.8 1.1 3.9 1.6 6 1.6s4.2-.5 6-1.6c.3-.2.5-.5.5-.9v-3.9L12 16l-6.5-3.4Z"/></svg></span>
       <span>Study</span>
     </a>
+    <a href="#langs" class="tab" data-tab="langs">
+      <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-3a15.6 15.6 0 0 0-1.4-3.9A8 8 0 0 1 18.9 8ZM12 4.1c.8 1.1 1.5 2.4 1.9 3.9h-3.8c.4-1.5 1.1-2.8 1.9-3.9ZM4.3 14a8.2 8.2 0 0 1 0-4h3.4a16.5 16.5 0 0 0 0 4H4.3Zm.8 2h3c.3 1.4.8 2.7 1.4 3.9A8 8 0 0 1 5.1 16Zm3-8h-3a8 8 0 0 1 4.4-3.9C8.9 5.3 8.4 6.6 8.1 8ZM12 19.9c-.8-1.1-1.5-2.4-1.9-3.9h3.8c-.4 1.5-1.1 2.8-1.9 3.9Zm2.3-5.9H9.7a14.7 14.7 0 0 1 0-4h4.6a14.7 14.7 0 0 1 0 4Zm.3 5.9c.6-1.2 1.1-2.5 1.4-3.9h3a8 8 0 0 1-4.4 3.9Zm1.7-5.9a16.5 16.5 0 0 0 0-4h3.4a8.2 8.2 0 0 1 0 4h-3.4Z"/></svg></span>
+      <span>Languages</span>
+    </a>
     <a href="#sat" class="tab" data-tab="sat">
       <span class="ind"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm8 1.5V8h4.5L14 3.5ZM7.5 12a1 1 0 0 0 0 2h9a1 1 0 1 0 0-2h-9Zm0 4a1 1 0 0 0 0 2h6a1 1 0 1 0 0-2h-6Z"/></svg></span>
       <span>SAT</span>
@@ -331,6 +350,10 @@
   </nav>
 
   <script src="sat.js"></script>
+  <script src="courses/spanish.js"></script>
+  <script src="courses/french.js"></script>
+  <script src="courses/latin.js"></script>
+  <script src="courses/mandarin.js"></script>
   <script src="app.js"></script>
   <script type="module" src="sync.js"></script>
 </body>
