@@ -277,6 +277,11 @@
   const PICK_KEY = "studydot:langpick";
   let pick = { lang: "", level: 0 };
   try { pick = { ...pick, ...JSON.parse(localStorage.getItem(PICK_KEY)) }; } catch { /* first visit */ }
+  // "Spanish 3" → "Level 3", "AP Chinese" → "AP", "Heritage French" → "Heritage".
+  function levelLabel(name, langName) {
+    if (/\d$/.test(name)) return "Level " + name.match(/\d+$/)[0];
+    return name.replace(langName, "").replace("Chinese", "").trim() || name;
+  }
   function renderLangs() {
     $("lang-pick").innerHTML = COURSES.map((c) => `
       <button type="button" class="lang-btn" role="radio" aria-checked="${c.lang === pick.lang}" data-pick-lang="${c.lang}">
@@ -287,7 +292,7 @@
     if (!course) return;
     if (!course.levels[pick.level]) pick.level = 0;
     $("level-pick").innerHTML = course.levels.map((lv, i) => `
-      <button type="button" class="level-btn" role="radio" aria-checked="${i === pick.level}" data-pick-level="${i}">${esc(/\d$/.test(lv.name) ? "Level " + lv.name.slice(-1) : lv.name)}</button>`).join("");
+      <button type="button" class="level-btn" role="radio" aria-checked="${i === pick.level}" data-pick-level="${i}">${esc(levelLabel(lv.name, course.name))}</button>`).join("");
     const units = COURSE_SETS.filter((s) => s.course === course.lang && s.level === pick.level);
     $("unit-list").innerHTML = units.map((s, i) => {
       const added = addedCopy(s.id);
