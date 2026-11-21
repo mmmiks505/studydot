@@ -1,9 +1,9 @@
 // Studydot offline worker: keeps a copy of the app on the device so it opens and
 // works without internet. Each time you're online it quietly fetches the newest
 // version for next time. Change VERSION when files are added or removed.
-const VERSION = "studydot-v1";
+const VERSION = "studydot-v2";
 const APP_FILES = [
-  "./", "index.html", "style.css", "app.js", "sync.js", "sat.js",
+  "./", "index.html", "style.css", "app.js", "sync.js", "sat.js", "emoji.js",
   "courses/spanish.js", "courses/french.js", "courses/latin.js", "courses/mandarin.js",
   "manifest.json", "icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
 ];

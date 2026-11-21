@@ -258,6 +258,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
   background: var(--card); box-shadow: 0 2px 10px color-mix(in srgb, var(--text) 8%, transparent);
 }
 .fc-back { transform: rotateY(180deg); background: var(--card-high); }
+.fc-emoji { font-size: 44px; line-height: 1; }
+.fc-emoji:empty { display: none; }
+.terms .emo { margin-right: 8px; font-size: 20px; vertical-align: -2px; }
 .fc-label { font: 700 12px/1 var(--menu-font); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .fc-text { font-size: clamp(22px, 5vw, 34px); font-weight: 700; text-align: center; overflow-wrap: anywhere; white-space: pre-wrap; max-height: 100%; overflow-y: auto; }
 .fc-back .fc-text { font-size: clamp(18px, 4vw, 26px); font-weight: 600; }

@@ -539,7 +539,7 @@
     $("go-tricky").hidden = !tricky.length;
     $("go-tricky").innerHTML = `<span>🎯</span><span><strong>Practice your ${plural(tricky.length, "tricky word")}</strong><small>Get each one right twice to clear it</small></span><span class="chev">›</span>`;
     $("set-terms").innerHTML = s.cards.length
-      ? s.cards.map((c) => `<li${isTricky(s, c) ? ' class="is-tricky"' : ""}><span class="t">${esc(c.term)}${zh && c.pin ? `<span class="pin">${esc(c.pin)}</span>` : ""}${isTricky(s, c) ? '<span class="tricky-tag">🎯 tricky</span>' : ""}</span><span class="d">${esc(c.def)}</span></li>`).join("")
+      ? s.cards.map((c) => `<li${isTricky(s, c) ? ' class="is-tricky"' : ""}><span class="t">${emojiFor(s, c) ? `<span class="emo" aria-hidden="true">${emojiFor(s, c)}</span>` : ""}${esc(c.term)}${zh && c.pin ? `<span class="pin">${esc(c.pin)}</span>` : ""}${isTricky(s, c) ? '<span class="tricky-tag">🎯 tricky</span>' : ""}</span><span class="d">${esc(c.def)}</span></li>`).join("")
       : `<li><span class="muted">No cards yet. Tap Edit to add some.</span></li>`;
   }
   $("dir-seg").addEventListener("click", (e) => {
@@ -781,6 +781,17 @@
     toast("Set deleted");
   });
 
+  /* ---------- small emojis for vocab words ---------- */
+  // Looks up the card's English meaning in emoji.js ("dog" → 🐶). Only the first
+  // choice is used, without "to", "a" or "the", and only exact matches count.
+  const EMOJI = window.EMOJI || {};
+  const emojiKey = (text) => text.split(/[,;/]/)[0].toLowerCase().replace(/[.!?¡¿]/g, "").replace(/^(to|a|an|the)\s+/, "").trim();
+  function emojiFor(s, c) {
+    if (!s || !c) return "";
+    const english = s.lang2 === "en" || (!s.lang2 && !s.lang) ? c.def : s.lang === "en" && s.lang2 ? c.term : "";
+    return english ? EMOJI[emojiKey(english)] || "" : "";
+  }
+
   /* ---------- tricky words ---------- */
   // Missing a card makes it "tricky"; getting it right twice in a row clears it.
   const TRICKY = "tricky";
@@ -848,6 +859,7 @@
     $("fc-back").textContent = sd.back;
     $("fc-front-label").textContent = sd.qLabel;
     $("fc-back-label").textContent = sd.backLabel;
+    $("fc-emoji").textContent = emojiFor(cardSet(c), c); // on the answer side, so it never gives the answer away
     const [sayFront, sayBack] = document.querySelectorAll("#flashcard .say");
     sayFront.hidden = !canSpeak(sd.qLang);
     sayBack.hidden = !canSpeak(isZh(cardSet(c)) ? "zh" : sd.aLang);
