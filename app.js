@@ -228,9 +228,12 @@
   });
 
   /* ---------- tabs ---------- */
-  const TABS = ["sets", "study", "langs", "sat", "profile"];
+  const TABS = ["sets", "library", "profile"];
   function showTab() {
-    const tab = TABS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "sets";
+    let tab = location.hash.slice(1);
+    // Old links to the Languages or SAT tabs open that part of the Library.
+    if (tab === "langs" || tab === "sat") { pick.lib = tab; savePick(); renderLibrary(); tab = "library"; }
+    if (!TABS.includes(tab)) tab = "sets";
     closeAll();
     document.querySelectorAll(".view").forEach((v) => { v.hidden = v.dataset.view !== tab; });
     document.querySelectorAll(".tab").forEach((t) => {
@@ -332,88 +335,67 @@
         <span class="chev" aria-hidden="true">›</span>
       </button></li>`).join("");
 
-    // Study tab: most recently studied first.
-    const recent = [...sets].sort((a, b) => (b.studied || b.updated || 0) - (a.studied || a.updated || 0));
-    $("study-empty").hidden = recent.length > 0;
-    $("study-list").innerHTML = recent.map((s) => `
-      <li class="study-row">
-        <span class="set-badge">${esc((s.title.trim()[0] || "?").toLowerCase())}</span>
-        <span class="set-info" data-open="${s.id}"><span class="set-name">${esc(s.title)}</span>
-          <span class="set-meta">${plural(s.cards.length, "card")}${s.best != null ? ` · best quiz ${s.best}%` : ""}</span></span>
-        <span class="study-btns">
-          <button type="button" data-cards="${s.id}">🃏 Cards</button>
-          <button type="button" data-quiz="${s.id}">✅ Quiz</button>
-          <button type="button" data-write="${s.id}">✍️ Write</button>
-        </span>
-      </li>`).join("");
-    // SAT tab: the ready-made sets.
-    const SUBJECTS = [["Vocabulary", "A"], ["Reading & Writing", "✎"], ["Math", "∑"]];
-    $("sat-list").innerHTML = SUBJECTS.map(([subject, badge]) => `
-      <li class="sat-subject"><h2>${subject}</h2></li>` + SAT.filter((s) => (s.subject || "Vocabulary") === subject).map((s) => `
-      <li class="study-row">
-        <span class="set-badge">${badge}</span>
-        <span class="set-info" data-open="${s.id}"><span class="set-name">${esc(s.title)}</span>
-          <span class="set-meta">${esc(s.blurb)} · ${plural(s.cards.length, "card")}</span></span>
-        <span class="study-btns">
-          <button type="button" data-cards="${s.id}">🃏 Cards</button>
-          <button type="button" data-quiz="${s.id}">✅ Quiz</button>
-          <button type="button" data-write="${s.id}">✍️ Write</button>
-        </span>
-      </li>`).join("")).join("");
-    renderLangs();
+    renderLibrary();
     if (currentSet && !$("set-screen").hidden) renderSet();
   }
 
-  /* ---------- Languages tab: language → level → units ---------- */
+  /* ---------- Library tab: Languages (language → level → units) and SAT (by subject) ---------- */
   const PICK_KEY = "studydot:langpick";
-  let pick = { lang: "", level: 0 };
+  let pick = { lib: "langs", lang: "", level: 0, subject: "Vocabulary" };
   try { pick = { ...pick, ...JSON.parse(localStorage.getItem(PICK_KEY)) }; } catch { /* first visit */ }
+  const savePick = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(pick)); } catch { /* ignore */ } };
+  const SUBJECTS = [["Vocabulary", "A"], ["Reading & Writing", "✎"], ["Math", "∑"]];
   // "Spanish 3" → "Level 3", "AP Chinese" → "AP", "Heritage French" → "Heritage".
   function levelLabel(name, langName) {
     if (/\d$/.test(name)) return "Level " + name.match(/\d+$/)[0];
     return name.replace(langName, "").replace("Chinese", "").trim() || name;
   }
-  function renderLangs() {
-    $("lang-pick").innerHTML = COURSES.map((c) => `
-      <button type="button" class="lang-btn" role="radio" aria-checked="${c.lang === pick.lang}" data-pick-lang="${c.lang}">
-        <span class="lang-icon">${c.icon}</span><span>${esc(c.name)}</span>
-      </button>`).join("");
-    const course = COURSES.find((c) => c.lang === pick.lang);
-    $("level-card").hidden = !course;
-    if (!course) return;
-    if (!course.levels[pick.level]) pick.level = 0;
-    $("level-pick").innerHTML = course.levels.map((lv, i) => `
-      <button type="button" class="level-btn" role="radio" aria-checked="${i === pick.level}" data-pick-level="${i}">${esc(levelLabel(lv.name, course.name))}</button>`).join("");
-    const units = COURSE_SETS.filter((s) => s.course === course.lang && s.level === pick.level);
-    $("unit-list").innerHTML = units.map((s, i) => {
-      const added = addedCopy(s.id);
-      return `
-      <li class="study-row unit-row">
-        <span class="set-badge">${i + 1}</span>
-        <span class="set-info" data-open="${s.id}"><span class="set-name">${esc(s.unit)}</span>
-          <span class="set-meta">${plural(s.cards.length, "word")}</span></span>
+  const chip = (attr, value, on, label) =>
+    `<button type="button" class="chip" role="radio" aria-checked="${on}" ${attr}="${esc(value)}">${label}</button>`;
+  // One row: tap it to open the set (where the study buttons are), or + Add it to your sets.
+  function libRow(s, badge, name, meta) {
+    const added = addedCopy(s.id);
+    return `
+      <li class="lib-row">
+        <button type="button" class="lib-open" data-open="${s.id}">
+          <span class="set-badge">${badge}</span>
+          <span class="set-info"><span class="set-name">${esc(name)}</span><span class="set-meta">${esc(meta)}</span></span>
+        </button>
         <button type="button" class="add-unit ${added ? "added" : "primary"}" data-add="${s.id}" ${added ? "disabled" : ""}>${added ? "✓ Added" : "+ Add"}</button>
-        <span class="study-btns">
-          <button type="button" data-cards="${s.id}">🃏 Cards</button>
-          <button type="button" data-quiz="${s.id}">✅ Quiz</button>
-          <button type="button" data-write="${s.id}">✍️ Write</button>
-        </span>
       </li>`;
-    }).join("");
   }
-  const savePick = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(pick)); } catch { /* ignore */ } };
-  $("lang-pick").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-pick-lang]");
-    if (!b) return;
-    if (pick.lang !== b.dataset.pickLang) pick = { lang: b.dataset.pickLang, level: 0 };
-    savePick(); renderLangs();
-    $("level-card").scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-  $("level-pick").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-pick-level]");
-    if (!b) return;
-    pick.level = Number(b.dataset.pickLevel);
-    savePick(); renderLangs();
+  function renderLibrary() {
+    document.querySelectorAll("[data-lib]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lib === pick.lib));
+    $("lib-langs").hidden = pick.lib !== "langs";
+    $("lib-sat").hidden = pick.lib !== "sat";
+
+    // Languages
+    const course = COURSES.find((c) => c.lang === pick.lang) || COURSES[0];
+    if (course) {
+      if (!course.levels[pick.level]) pick.level = 0;
+      $("lang-pick").innerHTML = COURSES.map((c) => chip("data-pick-lang", c.lang, c === course, `${c.icon} ${esc(c.name)}`)).join("");
+      $("level-pick").innerHTML = course.levels.map((lv, i) => chip("data-pick-level", i, i === pick.level, esc(levelLabel(lv.name, course.name)))).join("");
+      const units = COURSE_SETS.filter((s) => s.course === course.lang && s.level === pick.level);
+      $("unit-list").innerHTML = units.map((s, i) => libRow(s, i + 1, s.unit, plural(s.cards.length, "word"))).join("");
+    }
+
+    // SAT
+    const [subject, badge] = SUBJECTS.find(([n]) => n === pick.subject) || SUBJECTS[0];
+    $("sat-pick").innerHTML = SUBJECTS.map(([n]) => chip("data-pick-subject", n, n === subject, esc(n))).join("");
+    $("sat-list").innerHTML = SAT.filter((s) => (s.subject || "Vocabulary") === subject)
+      .map((s) => libRow(s, badge, s.title.replace(/^SAT (Math: )?/, ""), `${s.blurb} · ${plural(s.cards.length, "card")}`)).join("");
+  }
+  $("view-library").addEventListener("click", (e) => {
+    const lib = e.target.closest("[data-lib]");
+    const lang = e.target.closest("[data-pick-lang]");
+    const level = e.target.closest("[data-pick-level]");
+    const subj = e.target.closest("[data-pick-subject]");
+    if (lib) pick.lib = lib.dataset.lib;
+    else if (lang) { if (pick.lang !== lang.dataset.pickLang) { pick.lang = lang.dataset.pickLang; pick.level = 0; } }
+    else if (level) pick.level = Number(level.dataset.pickLevel);
+    else if (subj) pick.subject = subj.dataset.pickSubject;
+    else return;
+    savePick(); renderLibrary();
   });
 
   document.addEventListener("click", (e) => {
@@ -430,7 +412,6 @@
   });
   $("new-set").addEventListener("click", () => openEditor(null));
   $("empty-new").addEventListener("click", () => openEditor(null));
-  $("study-make").addEventListener("click", () => { location.hash = "#sets"; openEditor(null); });
   $("empty-sample").addEventListener("click", () => {
     const now = Date.now();
     data.sets.unshift({

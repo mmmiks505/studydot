@@ -312,6 +312,24 @@ select:focus { outline: none; border-bottom-color: var(--accent); }
 .sat-subject { padding: 10px 4px 2px; }
 .sat-subject:first-child { padding-top: 0; }
 
+/* ---------- Library tab ---------- */
+.lib-seg { max-width: 320px; width: 100%; margin: 0 auto; }
+.chip-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 2px 8px; margin: 0 -2px; scrollbar-width: none; }
+.chip-row::-webkit-scrollbar { display: none; }
+.chip-row + .chip-row { margin-top: 2px; }
+.chip { flex: none; padding: 6px 14px; font-size: 14px; color: var(--text); border-color: var(--line); background: var(--bg); }
+.chip[aria-checked="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.level-pick .chip { font-size: 13px; padding: 5px 12px; }
+.lib-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.lib-row { display: flex; align-items: center; gap: 8px; background: var(--bg); border-radius: 16px; padding: 4px 10px 4px 4px; }
+.lib-open {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; justify-content: flex-start; text-align: left;
+  border: 0; border-radius: 12px; padding: 8px; color: var(--text); background: none;
+}
+.lib-open:hover { background: var(--card-high); }
+.lib-open .set-name { white-space: normal; }
+.lib-hint { margin: 0; }
+
 /* ---------- Languages tab ---------- */
 .lang-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
 .lang-btn {

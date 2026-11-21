@@ -4,7 +4,7 @@ A simple study app: make sets of words or questions with their answers, then lea
 them with flashcards or a quiz. Works on phones and computers.
 Live at https://mmmiks505.github.io/studydot/
 
-- Five sections: **Sets** (your study sets), **Study** (pick a set and a way to study), **Languages** (ready-made vocab for Spanish, French, Latin and Mandarin, Levels 1–5, AP, IB and Heritage, that you can add to your sets), **SAT** (31 ready-made sets: vocabulary, reading & writing, and math), **Profile** (account and settings).
+- Three sections: **Sets** (your study sets), **Library** (ready-made sets: Languages for Spanish, French, Latin and Mandarin by level, and SAT by subject; tap one to study it or + Add it to your sets), **Profile** (account and settings).
 - Three ways to study: Flashcards, Quiz, and Write (type the answer).
 - Language sets for Spanish, French, Latin and Mandarin: accent buttons, read-aloud, and for Mandarin a Pinyin box on each card (tone numbers like `ni3` turn into tone marks).
 - Free accounts (email and password, via Firebase project `studydot-app`) save sets
