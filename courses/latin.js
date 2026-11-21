@@ -48,6 +48,21 @@
         ["piscis", "fish"], ["leo", "lion"], ["taurus", "bull"], ["ovis", "sheep"],
         ["vacca", "cow"], ["serpens", "snake"],
       ] },
+      { title: "Colors and simple adjectives", cards: [
+        ["albus", "white"], ["niger", "black"], ["ruber", "red"], ["viridis", "green"],
+        ["caeruleus", "blue"], ["flavus", "yellow"], ["altus", "high, deep"], ["longus", "long"],
+        ["novus", "new"], ["laetus", "happy"],
+      ] },
+      { title: "School and learning", cards: [
+        ["schola", "school"], ["magister", "teacher"], ["discipulus", "student, pupil"], ["tabula", "tablet"],
+        ["stilus", "stylus"], ["littera", "letter"], ["docere", "to teach"], ["discere", "to learn"],
+        ["rogare", "to ask"], ["numerare", "to count"],
+      ] },
+      { title: "Food and meals", cards: [
+        ["mel", "honey"], ["lac", "milk"], ["caseus", "cheese"], ["ovum", "egg"],
+        ["uva", "grape"], ["caro", "meat"], ["prandium", "lunch"], ["ientaculum", "breakfast"],
+        ["edere", "to eat"], ["bibere", "to drink"],
+      ] },
     ] },
     { name: "Latin 2", units: [
       { title: "Third declension nouns", cards: [
@@ -95,6 +110,21 @@
         ["cupere", "to want, to desire"], ["audire", "to hear"], ["venire", "to come"], ["dormire", "to sleep"],
         ["scire", "to know"], ["invenire", "to find"],
       ] },
+      { title: "Deponent verbs", cards: [
+        ["loqui", "to speak"], ["mori", "to die"], ["nasci", "to be born"], ["pati", "to suffer"],
+        ["uti", "to use"], ["frui", "to enjoy"], ["mirari", "to admire, to wonder at"], ["ingredi", "to enter"],
+        ["egredi", "to go out"], ["polliceri", "to promise"],
+      ] },
+      { title: "Numbers eleven to one thousand", cards: [
+        ["undecim", "eleven"], ["duodecim", "twelve"], ["quindecim", "fifteen"], ["viginti", "twenty"],
+        ["triginta", "thirty"], ["quadraginta", "forty"], ["quinquaginta", "fifty"], ["centum", "one hundred"],
+        ["quingenti", "five hundred"], ["mille", "one thousand"],
+      ] },
+      { title: "Travel and roads", cards: [
+        ["viator", "traveler"], ["navis", "ship"], ["plaustrum", "wagon"], ["caupona", "inn"],
+        ["miliarium", "milestone"], ["sarcina", "pack, bundle"], ["comes", "companion"], ["navigare", "to sail"],
+        ["redire", "to return"], ["discedere", "to depart, to leave"],
+      ] },
     ] },
     { name: "Latin 3", units: [
       { title: "Cicero's speeches", cards: [
@@ -131,6 +161,16 @@
         ["putare", "to think, to suppose"], ["credere", "to believe, to trust"], ["sperare", "to hope"], ["negare", "to deny"],
         ["narrare", "to tell"], ["respondere", "to answer, to reply"], ["nuntiare", "to announce, to report"], ["intellegere", "to understand"],
         ["meminisse", "to remember"], ["oblivisci", "to forget"],
+      ] },
+      { title: "Roman entertainment", cards: [
+        ["ludus", "game"], ["gladiator", "gladiator"], ["amphitheatrum", "amphitheater"], ["auriga", "charioteer"],
+        ["theatrum", "theater"], ["histrio", "actor"], ["scaena", "stage"], ["comoedia", "comedy"],
+        ["tragoedia", "tragedy"], ["plaudere", "to applaud"],
+      ] },
+      { title: "Health and medicine", cards: [
+        ["medicus", "doctor"], ["morbus", "disease, illness"], ["aeger", "sick, ill"], ["febris", "fever"],
+        ["sanguis", "blood"], ["medicina", "medicine"], ["remedium", "remedy, cure"], ["venenum", "poison"],
+        ["valetudo", "health"], ["sanare", "to heal"],
       ] },
     ] },
     { name: "Latin 4", units: [
@@ -169,6 +209,16 @@
         ["quaerere", "to seek, to ask"], ["cognoscere", "to learn, to get to know"], ["doctrina", "teaching, learning"], ["ingenium", "talent, intellect"],
         ["mens", "mind"], ["finis", "end, limit"],
       ] },
+      { title: "Roman religion and festivals", cards: [
+        ["pontifex", "high priest"], ["haruspex", "soothsayer"], ["augur", "augur"], ["lar", "household god"],
+        ["genius", "guardian spirit"], ["supplicatio", "thanksgiving"], ["omen", "omen, sign"], ["prodigium", "portent"],
+        ["pompa", "procession"], ["immolare", "to sacrifice"],
+      ] },
+      { title: "Rhetoric and style", cards: [
+        ["exordium", "introduction"], ["narratio", "narration"], ["peroratio", "conclusion"], ["inventio", "invention, discovery"],
+        ["dispositio", "arrangement"], ["elocutio", "style"], ["pronuntiatio", "delivery"], ["translatio", "metaphor"],
+        ["copia", "abundance"], ["persuadere", "to persuade"],
+      ] },
     ] },
     { name: "AP Latin", units: [
       { title: "Caesar: De Bello Gallico", cards: [
@@ -206,6 +256,16 @@
         ["harena", "sand"], ["ratis", "raft, ship"], ["tellus", "earth, land"], ["aura", "breeze, air"],
         ["portus", "harbor"], ["puppis", "stern, ship"],
       ] },
+      { title: "Caesar: Gaul and its peoples", cards: [
+        ["Gallia", "Gaul"], ["Germanus", "German"], ["Britannia", "Britain"], ["Rhenus", "Rhine"],
+        ["Rhodanus", "Rhone"], ["Garumna", "Garonne"], ["Sequana", "Seine"], ["Oceanus", "ocean"],
+        ["civitas", "state, tribe"], ["regio", "region"],
+      ] },
+      { title: "Vergil: gods and fate", cards: [
+        ["Iuno", "Juno"], ["Iuppiter", "Jupiter"], ["Venus", "Venus"], ["Neptunus", "Neptune"],
+        ["Mercurius", "Mercury"], ["Parca", "Fate"], ["sors", "lot"], ["caelestis", "heavenly"],
+        ["divinus", "divine"], ["fatalis", "fated"],
+      ] },
     ] },
     { name: "Latin 5", units: [
       { title: "Tacitus", cards: [
@@ -238,6 +298,16 @@
         ["humilitas", "humility"], ["memoria", "memory"], ["aeternitas", "eternity"], ["creator", "creator"],
         ["quies", "rest"], ["convertere", "to turn, to convert"],
       ] },
+      { title: "Latin mottos and sayings", cards: [
+        ["carpe diem", "seize the day"], ["tempus fugit", "time flies"], ["memento mori", "remember you will die"], ["semper fidelis", "always faithful"],
+        ["festina lente", "make haste slowly"], ["in vino veritas", "in wine there is truth"], ["mens sana in corpore sano", "a sound mind in a sound body"], ["per aspera ad astra", "through hardships to the stars"],
+        ["alma mater", "nourishing mother"], ["et cetera", "and the rest"],
+      ] },
+      { title: "Renaissance and scientific Latin", cards: [
+        ["humanitas", "humanity, culture"], ["academia", "academy"], ["universitas", "university"], ["experimentum", "experiment"],
+        ["observare", "to observe"], ["radius", "ray"], ["nucleus", "kernel"], ["genus", "kind, type"],
+        ["stella", "star"], ["orbis", "circle, world"],
+      ] },
     ] },
     { name: "IB Latin", units: [
       { title: "Ovid: flight and pursuit", cards: [
@@ -269,6 +339,16 @@
         ["domina", "mistress"], ["amator", "lover"], ["rivalis", "rival"], ["ianua", "door"],
         ["limen", "threshold"], ["militia", "military service"], ["queri", "to complain"], ["flere", "to weep"],
         ["ardere", "to burn"], ["durus", "hard, harsh"],
+      ] },
+      { title: "Ovid: Metamorphoses transformations", cards: [
+        ["figura", "shape, figure"], ["imago", "image"], ["cortex", "bark"], ["folium", "leaf"],
+        ["radix", "root"], ["truncus", "trunk"], ["squama", "scale"], ["marmor", "marble"],
+        ["vertere", "to turn"], ["crescere", "to grow"],
+      ] },
+      { title: "Cicero: letters", cards: [
+        ["tabellarius", "courier"], ["valere", "to be well"], ["negotium", "business"], ["rumor", "rumor"],
+        ["nuntius", "messenger, news"], ["sollicitudo", "anxiety, worry"], ["cura", "care, concern"], ["molestia", "trouble, annoyance"],
+        ["exspectare", "to await, to wait for"], ["certus", "certain, sure"],
       ] },
     ] },
   ],
