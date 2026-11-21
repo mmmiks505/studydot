@@ -93,6 +93,21 @@
         ["columna", "column"], ["statua", "statue"], ["tectum", "roof"], ["fenestra", "window"],
         ["cloaca", "sewer"], ["horreum", "granary"],
       ] },
+      { title: "Furniture and household objects", cards: [
+        ["sella", "chair"], ["armarium", "cupboard"], ["lucerna", "lamp"], ["speculum", "mirror"],
+        ["cista", "box, chest"], ["poculum", "cup"], ["olla", "pot"], ["culter", "knife"],
+        ["cubiculum", "bedroom"], ["culina", "kitchen"],
+      ] },
+      { title: "Tools and work", cards: [
+        ["securis", "axe"], ["malleus", "hammer"], ["clavus", "nail"], ["serra", "saw"],
+        ["rastrum", "rake"], ["funis", "rope"], ["corbis", "basket"], ["falx", "sickle"],
+        ["ligo", "hoe"], ["pala", "spade"],
+      ] },
+      { title: "More everyday verbs", cards: [
+        ["laborare", "to work"], ["clamare", "to shout"], ["cantare", "to sing"], ["parare", "to prepare"],
+        ["lavare", "to wash"], ["habitare", "to live, to dwell"], ["sedere", "to sit"], ["manere", "to remain, to stay"],
+        ["servare", "to save, to keep"], ["cogitare", "to think"],
+      ] },
     ] },
     { name: "Latin 2", units: [
       { title: "Third declension nouns", cards: [
@@ -185,6 +200,21 @@
         ["adulescentia", "adolescence"], ["iuvenis", "young man"], ["iuventus", "youth"], ["senex", "old man"],
         ["natalis", "birthday"], ["senescere", "to grow old"],
       ] },
+      { title: "Third declension adjectives", cards: [
+        ["acer", "sharp, fierce"], ["brevis", "short"], ["gravis", "heavy, serious"], ["levis", "light"],
+        ["omnis", "all, every"], ["tristis", "sad"], ["dulcis", "sweet"], ["nobilis", "noble"],
+        ["felix", "lucky, happy"], ["ingens", "huge"],
+      ] },
+      { title: "Verbs of giving and taking", cards: [
+        ["dare", "to give"], ["donare", "to present"], ["tradere", "to hand over"], ["reddere", "to give back"],
+        ["sumere", "to take"], ["emere", "to buy"], ["vendere", "to sell"], ["offerre", "to offer"],
+        ["auferre", "to take away"], ["praebere", "to provide"],
+      ] },
+      { title: "The forum and shops", cards: [
+        ["mercator", "merchant"], ["merx", "merchandise"], ["pecunia", "money"], ["pretium", "price"],
+        ["macellum", "market"], ["pistor", "baker"], ["lanius", "butcher"], ["tonsor", "barber"],
+        ["officina", "workshop"], ["basilica", "basilica"],
+      ] },
     ] },
     { name: "Latin 3", units: [
       { title: "Cicero's speeches", cards: [
@@ -251,6 +281,16 @@
         ["diligere", "to esteem"], ["osculari", "to kiss"], ["amplecti", "to embrace"], ["favere", "to favor"],
         ["iuvare", "to help"], ["consolari", "to comfort, to console"], ["desiderare", "to long for, to miss"], ["fidere", "to trust"],
         ["salutare", "to greet"], ["placere", "to please"],
+      ] },
+      { title: "Roman engineering and building", cards: [
+        ["aedificare", "to build"], ["exstruere", "to erect"], ["fundamentum", "foundation"], ["fornix", "arch"],
+        ["lapis", "stone"], ["later", "brick"], ["tegula", "roof tile"], ["architectus", "architect"],
+        ["pavimentum", "floor"], ["metiri", "to measure"],
+      ] },
+      { title: "Body and medicine: beyond the basics", cards: [
+        ["venter", "belly"], ["stomachus", "stomach"], ["iecur", "liver"], ["umerus", "shoulder"],
+        ["genu", "knee"], ["collum", "neck"], ["digitus", "finger"], ["cutis", "skin"],
+        ["tussis", "cough"], ["cicatrix", "scar"],
       ] },
     ] },
     { name: "Latin 4", units: [
@@ -319,6 +359,16 @@
         ["liberalitas", "generosity"], ["societas", "fellowship, partnership"], ["magnanimitas", "magnanimity"], ["probitas", "honesty"],
         ["bonum", "good"], ["turpis", "shameful"],
       ] },
+      { title: "Provinces and administration", cards: [
+        ["propraetor", "propraetor"], ["tributum", "tribute"], ["vectigal", "tax"], ["publicanus", "tax collector"],
+        ["praefectus", "prefect"], ["procurator", "procurator"], ["municipium", "town"], ["socius", "ally"],
+        ["stipendium", "pay"], ["administrare", "to manage"],
+      ] },
+      { title: "Stoic and Epicurean terms", cards: [
+        ["providentia", "providence"], ["aequanimitas", "equanimity"], ["affectus", "emotion"], ["perturbatio", "disturbance"],
+        ["indolentia", "freedom from pain"], ["atomus", "atom"], ["inane", "void"], ["assensio", "assent"],
+        ["honestum", "moral good"], ["indifferens", "indifferent"],
+      ] },
     ] },
     { name: "AP Latin", units: [
       { title: "Caesar: De Bello Gallico", cards: [
@@ -386,6 +436,16 @@
         ["quercus", "oak"], ["pinus", "pine"], ["flos", "flower"], ["fulmen", "thunderbolt"],
         ["turbo", "whirlwind"], ["imber", "rain, shower"],
       ] },
+      { title: "Vergil: epithets and emotions", cards: [
+        ["Cytherea", "Venus"], ["Saturnia", "Juno"], ["Tritonia", "Minerva"], ["Anchisiades", "son of Anchises"],
+        ["amens", "frantic"], ["maestus", "sorrowful"], ["saevus", "savage, cruel"], ["dolere", "to grieve"],
+        ["pavor", "terror"], ["ardor", "passion"],
+      ] },
+      { title: "Caesar: camp and march", cards: [
+        ["vigilia", "watch"], ["statio", "outpost"], ["tabernaculum", "tent"], ["praesidium", "garrison"],
+        ["agger", "mound"], ["pabulum", "fodder"], ["tuba", "trumpet"], ["centurio", "centurion"],
+        ["progredi", "to advance"], ["pabulari", "to forage"],
+      ] },
     ] },
     { name: "Latin 5", units: [
       { title: "Tacitus", cards: [
@@ -448,6 +508,16 @@
         ["nemo", "no one"], ["onus", "burden"], ["actus", "act, deed"], ["innocens", "innocent"],
         ["nocens", "guilty"], ["pactum", "agreement, pact"],
       ] },
+      { title: "Latin abbreviations in English", cards: [
+        ["exempli gratia", "for example"], ["id est", "that is"], ["nota bene", "note well"], ["et alii", "and others"],
+        ["circa", "around"], ["ibidem", "in the same place"], ["post scriptum", "written after"], ["ante meridiem", "before noon"],
+        ["post meridiem", "after noon"], ["videlicet", "namely"],
+      ] },
+      { title: "Astronomy and the calendar", cards: [
+        ["planeta", "planet"], ["cometes", "comet"], ["defectio", "eclipse"], ["aequinoctium", "equinox"],
+        ["solstitium", "solstice"], ["zodiacus", "zodiac"], ["polus", "pole"], ["astrum", "star"],
+        ["Lucifer", "morning star"], ["bissextus", "leap day"],
+      ] },
     ] },
     { name: "IB Latin", units: [
       { title: "Ovid: flight and pursuit", cards: [
@@ -509,6 +579,16 @@
         ["lupa", "she-wolf"], ["geminus", "twin"], ["Romulus", "Romulus"], ["Tiberis", "Tiber"],
         ["vultur", "vulture"], ["auspicium", "auspice"], ["asylum", "refuge"], ["rapere", "to seize"],
         ["Sabinus", "Sabine"], ["sulcus", "furrow"],
+      ] },
+      { title: "Catullus: love and loss", cards: [
+        ["suavium", "kiss"], ["mellitus", "honey-sweet"], ["deperire", "to love madly"], ["excruciare", "to torment"],
+        ["lugere", "to mourn"], ["maeror", "grief"], ["sepulcrum", "tomb"], ["mutus", "mute"],
+        ["acerbus", "bitter"], ["ingratus", "ungrateful"],
+      ] },
+      { title: "Ovid: exile", cards: [
+        ["exsul", "exile"], ["relegare", "to banish"], ["Tomis", "Tomis"], ["Ister", "Danube"],
+        ["Augustus", "Augustus"], ["error", "mistake"], ["solacium", "comfort"], ["querela", "complaint"],
+        ["frigus", "cold"], ["remotus", "remote"],
       ] },
     ] },
   ],
