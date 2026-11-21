@@ -215,7 +215,10 @@
             <label class="field"><span>Answer language</span><select id="edit-lang2"></select></label>
           </div>
         </div>
-        <button type="button" class="paste-btn" id="paste-open">📋 Paste a list</button>
+        <div class="add-ways">
+          <button type="button" class="paste-btn" id="paste-open">📋 Paste a list</button>
+          <button type="button" class="paste-btn" id="pick-open">📚 Add from sets</button>
+        </div>
         <div class="card paste-box" id="paste-box" hidden>
           <label class="field">
             <span>Paste your list, one card per line</span>
@@ -351,6 +354,31 @@
         <button type="submit" class="primary" id="acct-submit">Log in</button>
         <button type="button" class="link-btn" id="acct-forgot">Forgot password?</button>
       </form>
+    </div>
+  </section>
+
+  <!-- Add words from any set: your sets, Languages or SAT -->
+  <section class="screen" id="pick-screen" hidden aria-labelledby="pick-title">
+    <div class="screen-inner">
+      <header class="screen-head">
+        <button type="button" class="back" id="pick-back">‹ Back</button>
+        <button type="button" class="link-btn" id="pick-all" hidden>Select all</button>
+      </header>
+      <h1 id="pick-title">Add words</h1>
+      <div id="pick-sources">
+        <div class="seg" id="pick-seg" role="group" aria-label="Where to look">
+          <button type="button" data-psrc="mine">My sets</button>
+          <button type="button" data-psrc="langs">Languages</button>
+          <button type="button" data-psrc="sat">SAT</button>
+        </div>
+        <div class="chip-row" id="pick-chips1"></div>
+        <div class="chip-row level-pick" id="pick-chips2"></div>
+      </div>
+      <ul class="lib-list" id="pick-list"></ul>
+      <div class="mix-bar pick-bar">
+        <span id="pick-count">Pick some words</span>
+        <button type="button" class="primary" id="pick-add" disabled>Add words</button>
+      </div>
     </div>
   </section>
 

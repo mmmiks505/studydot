@@ -235,6 +235,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 .edit-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .add-card { border-style: dashed; padding: 14px; border-radius: 20px; }
 .paste-btn { align-self: flex-start; }
+.add-ways { display: flex; gap: 8px; flex-wrap: wrap; }
+#pick-sources { display: flex; flex-direction: column; gap: 8px; }
+#pick-seg { max-width: 360px; }
+.pin-inline { font-weight: 500; color: var(--accent); font-size: 13px; }
+.pick-bar { position: sticky; bottom: calc(env(safe-area-inset-bottom) + 12px); }
 .paste-box { display: flex; flex-direction: column; gap: 8px; }
 .paste-box textarea { min-height: 140px; resize: vertical; font-size: 15px; }
 .paste-box .muted { margin: 0; }

@@ -814,6 +814,100 @@
   });
   $("paste-text").addEventListener("input", updatePaste);
   function closePaste() { $("paste-box").hidden = true; $("paste-open").hidden = false; }
+
+  /* ---------- add words from any set ---------- */
+  // A picker for the set editor: browse your sets, the Languages library or SAT,
+  // open a set, check the words you want (from as many sets as you like) and add them.
+  const pk = { src: "mine", lang: "", level: 0, subject: "Vocabulary", set: null, sel: new Map() };
+  const pickKey = (s, c) => `${s.id}|${c.id}`;
+  function pickSets() {
+    if (pk.src === "mine") return liveSets().filter((x) => x.id !== editing);
+    if (pk.src === "sat") return SAT.filter((x) => (x.subject || "Vocabulary") === pk.subject);
+    const course = COURSES.find((c) => c.lang === pk.lang) || COURSES[0];
+    return course ? COURSE_SETS.filter((x) => x.course === course.lang && x.level === pk.level) : [];
+  }
+  function renderPick() {
+    const s = pk.set && findSet(pk.set);
+    $("pick-sources").hidden = !!s;
+    $("pick-all").hidden = !s;
+    $("pick-title").textContent = s ? (s.unit || s.title) : "Add words";
+    document.querySelectorAll("[data-psrc]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.psrc === pk.src));
+    if (!s) {
+      const course = COURSES.find((c) => c.lang === pk.lang) || COURSES[0];
+      $("pick-chips1").innerHTML = pk.src === "langs" ? COURSES.map((c) => chip("data-plang", c.lang, c === course, `${c.icon} ${esc(c.name)}`)).join("")
+        : pk.src === "sat" ? SUBJECTS.map(([n]) => chip("data-psubj", n, n === pk.subject, esc(n))).join("") : "";
+      $("pick-chips2").innerHTML = pk.src === "langs" && course ? course.levels.map((lv, i) => chip("data-plevel", i, i === pk.level, esc(levelLabel(lv.name, course.name)))).join("") : "";
+      const sets = pickSets();
+      $("pick-list").innerHTML = sets.length ? sets.map((x) => {
+        const n = x.cards.filter((c) => pk.sel.has(pickKey(x, c))).length;
+        return `<li class="lib-row"><button type="button" class="lib-open" data-pset="${x.id}">
+          <span class="set-info"><span class="set-name">${esc(x.unit || x.title.replace(/^SAT (Math: )?/, ""))}</span>
+          <span class="set-meta">${plural(x.cards.length, "word")}${n ? ` · ${n} picked` : ""}</span></span><span class="chev">›</span></button></li>`;
+      }).join("") : `<li class="muted center">No sets here yet.</li>`;
+    } else {
+      const zh = isZh(s);
+      $("pick-list").innerHTML = s.cards.map((c, i) => {
+        const on = pk.sel.has(pickKey(s, c));
+        return `<li class="lib-row mixing${on ? " checked" : ""}"><button type="button" class="lib-open" data-pcard="${i}" aria-pressed="${on}">
+          <span class="check"><span></span></span>
+          <span class="set-info"><span class="set-name">${esc(c.term)}${zh && c.pin ? ` <span class="pin-inline">${esc(c.pin)}</span>` : ""}</span><span class="set-meta">${esc(c.def)}</span></span></button></li>`;
+      }).join("");
+      $("pick-all").textContent = s.cards.every((c) => pk.sel.has(pickKey(s, c))) ? "Select none" : "Select all";
+    }
+    const n = pk.sel.size;
+    $("pick-count").textContent = n ? `${plural(n, "word")} picked` : "Pick some words";
+    $("pick-add").disabled = !n;
+    $("pick-add").textContent = n ? `Add ${plural(n, "word")}` : "Add words";
+  }
+  $("pick-open").addEventListener("click", () => {
+    pk.set = null; pk.sel = new Map();
+    if (!pk.lang && COURSES[0]) pk.lang = $("edit-lang").value && COURSES.some((c) => c.lang === $("edit-lang").value) ? $("edit-lang").value : COURSES[0].lang;
+    renderPick();
+    openScreen("pick-screen");
+  });
+  $("pick-back").addEventListener("click", () => {
+    if (pk.set) { pk.set = null; renderPick(); } else closeScreen();
+  });
+  $("pick-all").addEventListener("click", () => {
+    const s = findSet(pk.set);
+    if (!s) return;
+    const all = s.cards.every((c) => pk.sel.has(pickKey(s, c)));
+    s.cards.forEach((c) => { if (all) pk.sel.delete(pickKey(s, c)); else pk.sel.set(pickKey(s, c), { ...c, _from: s }); });
+    renderPick();
+  });
+  $("pick-screen").addEventListener("click", (e) => {
+    const src = e.target.closest("[data-psrc]"), pl = e.target.closest("[data-plang]"), lv = e.target.closest("[data-plevel]");
+    const sj = e.target.closest("[data-psubj]"), ps = e.target.closest("[data-pset]"), pc = e.target.closest("[data-pcard]");
+    if (src) pk.src = src.dataset.psrc;
+    else if (pl) { if (pk.lang !== pl.dataset.plang) { pk.lang = pl.dataset.plang; pk.level = 0; } }
+    else if (lv) pk.level = Number(lv.dataset.plevel);
+    else if (sj) pk.subject = sj.dataset.psubj;
+    else if (ps) { pk.set = ps.dataset.pset; $("pick-screen").scrollTop = 0; }
+    else if (pc) {
+      const s = findSet(pk.set), c = s && s.cards[Number(pc.dataset.pcard)];
+      if (!c) return;
+      const k = pickKey(s, c);
+      if (pk.sel.has(k)) pk.sel.delete(k); else pk.sel.set(k, { ...c, _from: s });
+    } else return;
+    renderPick();
+  });
+  $("pick-add").addEventListener("click", () => {
+    const picked = [...pk.sel.values()];
+    if (!picked.length) return;
+    // A set with no language yet takes the language of the words being added.
+    const first = picked[0]._from;
+    if (!$("edit-lang").value && first.lang) {
+      $("edit-lang").value = first.lang;
+      $("edit-lang2").value = first.lang2 || (first.lang !== "en" ? "en" : "");
+      relabelRows();
+    }
+    const list = $("edit-cards");
+    [...list.children].forEach((li) => { if (![...li.querySelectorAll("textarea")].some((t) => t.value.trim())) li.remove(); });
+    picked.forEach((c) => list.append(cardRow({ id: uid(), term: c.term, def: c.def, pin: c.pin || "" })));
+    list.querySelectorAll("textarea").forEach(grow);
+    closeScreen();
+    toast(`Added ${plural(picked.length, "word")}`);
+  });
   $("paste-cancel").addEventListener("click", closePaste);
   $("paste-add").addEventListener("click", () => {
     const cards = parseList($("paste-text").value, $("edit-lang").value === "zh");
