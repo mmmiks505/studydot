@@ -396,6 +396,26 @@ select:focus { outline: none; border-bottom-color: var(--accent); }
 .lib-open:hover { background: var(--card-high); }
 .lib-open .set-name { white-space: normal; }
 .lib-hint { margin: 0; }
+/* Mix sets */
+.lib-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: -4px; }
+.lib-bar .muted { margin: 0; }
+.lib-bar button { margin-left: auto; padding: 6px 14px; font-size: 14px; }
+.lib-row.mixing { padding-right: 4px; }
+.lib-row.mixing.checked { background: color-mix(in srgb, var(--accent) 12%, var(--bg)); }
+.lib-row.mixing .check span { position: absolute; inset: 0; border-radius: 7px; border: 2px solid var(--outline); background: var(--bg); }
+.lib-row.mixing.checked .check span { background: var(--accent); border-color: var(--accent); }
+.lib-row.mixing.checked .check span::after { content: "✓"; position: absolute; inset: 0; display: grid; place-items: center; color: var(--on-accent); font-weight: 700; font-size: 14px; }
+.mix-bar {
+  position: sticky; bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom) + 10px); z-index: 6;
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 10px 10px 18px; border-radius: 999px; background: var(--text); color: var(--bg); font-weight: 600;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, .18);
+}
+.mix-bar .primary { background: var(--bg); color: var(--text); border-color: var(--bg); }
+.mix-bar .primary:disabled { opacity: .5; }
+.edit-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.edit-actions .delete-selected { margin-top: 0; }
+.edit-actions #mix-selected { width: 100%; padding: 10px; }
 
 /* ---------- Languages tab ---------- */
 .lang-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }

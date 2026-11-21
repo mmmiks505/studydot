@@ -170,7 +170,7 @@
   const fingerprint = (str) => { let h = 5381; for (const ch of str) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0; return h.toString(36); };
   async function shareSet(s) {
     let url;
-    try { url = SITE + (s.builtIn && !s.shared ? `#open=${s.id}` : `#share=${await packSet(s)}`); }
+    try { url = SITE + (s.builtIn && !s.shared && !s.mixed ? `#open=${s.id}` : `#share=${await packSet(s)}`); }
     catch { toast("Couldn't make a link for this set"); return; }
     const text = `Study "${s.title}" with me on Studydot`;
     if (navigator.share && matchMedia("(pointer: coarse)").matches) {
@@ -179,6 +179,24 @@
     try { await navigator.clipboard.writeText(url); toast("Link copied. Paste it to share."); }
     catch { window.prompt("Copy this link to share the set:", url); }
   }
+  // A mixed set: the cards of several sets studied as one. Each card remembers its
+  // own set (_set), so tricky words still count toward the set it came from.
+  function makeMix(ids) {
+    const sets = ids.map(findSet).filter(Boolean);
+    if (sets.length < 2) return null;
+    const id = "mix-" + fingerprint(sets.map((x) => x.id).join(","));
+    if (!BUILT_IN.some((x) => x.id === id)) {
+      const same = (k) => (sets.every((x) => (x[k] || "") === (sets[0][k] || "")) ? sets[0][k] || "" : "");
+      const names = sets.map((x) => x.unit || x.title);
+      BUILT_IN.push({
+        id, builtIn: true, mixed: true, lang: same("lang"), lang2: same("lang2"),
+        title: names.length <= 3 ? names.join(" + ") : `${names[0]} + ${names.length - 1} more`,
+        cards: sets.flatMap((x) => x.cards.map((c) => ({ ...c, _set: c._set || x.id }))),
+      });
+    }
+    return id;
+  }
+
   // Opening a shared link shows the set; you can study it or add it to your sets.
   async function openLink() {
     const hash = location.hash.slice(1);
@@ -373,6 +391,13 @@
     setOrder(list.sort(sorts[b.dataset.sort]));
     toast(`Sorted ${b.textContent}`);
   }));
+  $("mix-selected").addEventListener("click", () => {
+    const ids = liveSets().filter((x) => selected.has(x.id)).map((x) => x.id);
+    const id = makeMix(ids);
+    if (!id) return;
+    editMode = false; selected.clear(); render();
+    openSet(id);
+  });
   $("delete-selected").addEventListener("click", async () => {
     const n = selected.size;
     if (!n) return;
@@ -396,6 +421,12 @@
     $("delete-selected").hidden = !editMode;
     selected.forEach((id) => { if (!findSet(id) || findSet(id).builtIn) selected.delete(id); });
     $("delete-selected").disabled = !selected.size;
+    const picked = liveSets().filter((x) => selected.has(x.id));
+    const langOf = (x) => `${x.lang || ""}|${x.lang2 || ""}`;
+    const sameLang = picked.every((x) => langOf(x) === langOf(picked[0]));
+    $("mix-selected").hidden = !editMode;
+    $("mix-selected").disabled = picked.length < 2 || !sameLang;
+    $("mix-selected").textContent = picked.length >= 2 && !sameLang ? "Pick sets in the same language to mix" : picked.length >= 2 ? `🔀 Study ${plural(picked.length, "set")} together` : "🔀 Study together";
     $("delete-selected").textContent = selected.size ? `Delete ${plural(selected.size, "set")}` : "Delete";
     $("select-all").textContent = selected.size === sets.length ? "Select none" : "Select all";
     const meta = (s) => `${s.lang && s.lang !== "en" ? `${langName(s.lang)} · ` : ""}${plural(s.cards.length, "card")}${s.studied ? ` · studied ${ago(s.studied)}` : ""}`;
@@ -439,7 +470,18 @@
   const chip = (attr, value, on, label) =>
     `<button type="button" class="chip" role="radio" aria-checked="${on}" ${attr}="${esc(value)}">${label}</button>`;
   // One row: tap it to open the set (where the study buttons are), or + Add it to your sets.
+  // In Mix mode, tapping a row checks it instead.
   function libRow(s, badge, name, meta) {
+    if (mixMode) {
+      const on = mixSel.has(s.id);
+      return `
+      <li class="lib-row mixing${on ? " checked" : ""}">
+        <button type="button" class="lib-open" data-mixpick="${s.id}" aria-pressed="${on}">
+          <span class="check"><span></span></span>
+          <span class="set-info"><span class="set-name">${esc(name)}</span><span class="set-meta">${esc(meta)}</span></span>
+        </button>
+      </li>`;
+    }
     const added = addedCopy(s.id);
     return `
       <li class="lib-row">
@@ -450,7 +492,24 @@
         <button type="button" class="add-unit ${added ? "added" : "primary"}" data-add="${s.id}" ${added ? "disabled" : ""}>${added ? "✓ Added" : "+ Add"}</button>
       </li>`;
   }
+  // Mix mode: check several sets from the same section (one language, or SAT) and study them together.
+  let mixMode = false, mixScope = "";
+  const mixSel = new Set();
+  const libScope = () => (pick.lib === "sat" ? "sat" : (COURSES.find((c) => c.lang === pick.lang) || COURSES[0] || {}).lang);
+  function renderMixBar() {
+    const n = mixSel.size;
+    const cards = [...mixSel].reduce((t, id) => t + (findSet(id) ? findSet(id).cards.length : 0), 0);
+    $("mix-toggle").textContent = mixMode ? "Done" : "🔀 Mix sets";
+    $("mix-toggle").classList.toggle("primary", mixMode);
+    $("mix-hint").textContent = mixMode ? (pick.lib === "sat" ? "Pick SAT sets from any subject" : "Pick units from any level of this language") : "";
+    $("mix-bar").hidden = !mixMode;
+    $("mix-count").textContent = n ? `${plural(n, "set")} · ${plural(cards, "card")}` : "Pick 2 or more sets";
+    $("mix-go").disabled = n < 2;
+    document.querySelector(".lib-hint").hidden = mixMode;
+  }
   function renderLibrary() {
+    if (mixScope !== libScope()) { mixScope = libScope(); mixSel.clear(); }
+    renderMixBar();
     document.querySelectorAll("[data-lib]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lib === pick.lib));
     $("lib-langs").hidden = pick.lib !== "langs";
     $("lib-sat").hidden = pick.lib !== "sat";
@@ -471,7 +530,21 @@
     $("sat-list").innerHTML = SAT.filter((s) => (s.subject || "Vocabulary") === subject)
       .map((s) => libRow(s, badge, s.title.replace(/^SAT (Math: )?/, ""), `${s.blurb} · ${plural(s.cards.length, "card")}`)).join("");
   }
+  $("mix-toggle").addEventListener("click", () => { mixMode = !mixMode; mixSel.clear(); renderLibrary(); });
+  $("mix-go").addEventListener("click", () => {
+    const id = makeMix([...mixSel]);
+    if (!id) return;
+    mixMode = false; mixSel.clear(); renderLibrary();
+    openSet(id);
+  });
   $("view-library").addEventListener("click", (e) => {
+    const mp = e.target.closest("[data-mixpick]");
+    if (mp) {
+      const id = mp.dataset.mixpick;
+      if (mixSel.has(id)) mixSel.delete(id); else mixSel.add(id);
+      renderLibrary();
+      return;
+    }
     const lib = e.target.closest("[data-lib]");
     const lang = e.target.closest("[data-pick-lang]");
     const level = e.target.closest("[data-pick-level]");
@@ -795,7 +868,7 @@
   /* ---------- tricky words ---------- */
   // Missing a card makes it "tricky"; getting it right twice in a row clears it.
   const TRICKY = "tricky";
-  const statKey = (s, c) => `${s.id}|${c.id}`;
+  const statKey = (s, c) => `${c._set || s.id}|${c.id}`; // cards in a mixed set count toward their own set
   const statOf = (s, c) => (s && c && data.stats ? data.stats[statKey(s, c)] || null : null);
   function setStat(s, c, st) {
     if (!s || !c) return;
@@ -803,7 +876,7 @@
     if (st) data.stats[statKey(s, c)] = st; else delete data.stats[statKey(s, c)];
   }
   function track(s, c, ok) {
-    if (!s || !c || s.shared) return;
+    if (!s || !c || (s.shared && !c._set)) return;
     const st = { m: 0, s: 0, ...statOf(s, c), t: Date.now() };
     if (ok) { st.s += 1; if (st.s >= 2) st.m = 0; } else { st.m += 1; st.s = 0; }
     if (!st.m && !statOf(s, c)) return; // right on a card never missed: nothing to remember

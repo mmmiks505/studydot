@@ -62,7 +62,10 @@
         </div>
       </div>
       <ul class="sets" id="sets-list"></ul>
-      <button type="button" class="danger delete-selected" id="delete-selected" hidden disabled>Delete</button>
+      <div class="edit-actions">
+        <button type="button" class="primary" id="mix-selected" hidden disabled>🔀 Study together</button>
+        <button type="button" class="danger delete-selected" id="delete-selected" hidden disabled>Delete</button>
+      </div>
       <div class="empty" id="sets-empty" hidden>
         <p class="empty-big">📚</p>
         <h2>No study sets yet</h2>
@@ -82,6 +85,10 @@
       <button type="button" data-lib="langs">Languages</button>
       <button type="button" data-lib="sat">SAT</button>
     </div>
+    <div class="lib-bar">
+      <span class="small muted" id="mix-hint"></span>
+      <button type="button" id="mix-toggle">🔀 Mix sets</button>
+    </div>
     <section class="card" id="lib-langs">
       <div class="chip-row" id="lang-pick" role="radiogroup" aria-label="Language"></div>
       <div class="chip-row level-pick" id="level-pick" role="radiogroup" aria-label="Level"></div>
@@ -91,7 +98,11 @@
       <div class="chip-row" id="sat-pick" role="radiogroup" aria-label="Subject"></div>
       <ul class="lib-list" id="sat-list"></ul>
     </section>
-    <p class="small muted center lib-hint">Tap a set to study it. <strong>+ Add</strong> puts it in your sets.</p>
+    <p class="small muted center lib-hint">Tap a set to study it. <strong>+ Add</strong> puts it in your sets. <strong>Mix sets</strong> studies several at once.</p>
+    <div class="mix-bar" id="mix-bar" hidden>
+      <span id="mix-count"></span>
+      <button type="button" class="primary" id="mix-go" disabled>Study together</button>
+    </div>
   </main>
 
   <!-- Profile: account and settings -->
