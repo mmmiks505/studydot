@@ -290,6 +290,9 @@ select:focus { outline: none; border-bottom-color: var(--accent); }
 .write-feedback.bad { background: color-mix(in srgb, var(--danger) 12%, var(--bg)); }
 .write-feedback strong { font-size: 18px; }
 
+.sat-subject { padding: 10px 4px 2px; }
+.sat-subject:first-child { padding-top: 0; }
+
 /* ---------- Languages tab ---------- */
 .lang-pick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
 .lang-btn {

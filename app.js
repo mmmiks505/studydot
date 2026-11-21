@@ -258,9 +258,11 @@
         </span>
       </li>`).join("");
     // SAT tab: the ready-made sets.
-    $("sat-list").innerHTML = SAT.map((s) => `
+    const SUBJECTS = [["Vocabulary", "A"], ["Reading & Writing", "✎"], ["Math", "∑"]];
+    $("sat-list").innerHTML = SUBJECTS.map(([subject, badge]) => `
+      <li class="sat-subject"><h2>${subject}</h2></li>` + SAT.filter((s) => (s.subject || "Vocabulary") === subject).map((s) => `
       <li class="study-row">
-        <span class="set-badge">${s.id === "sat-math" ? "∑" : "A"}</span>
+        <span class="set-badge">${badge}</span>
         <span class="set-info" data-open="${s.id}"><span class="set-name">${esc(s.title)}</span>
           <span class="set-meta">${esc(s.blurb)} · ${plural(s.cards.length, "card")}</span></span>
         <span class="study-btns">
@@ -268,7 +270,7 @@
           <button type="button" data-quiz="${s.id}">✅ Quiz</button>
           <button type="button" data-write="${s.id}">✍️ Write</button>
         </span>
-      </li>`).join("");
+      </li>`).join("")).join("");
     renderLangs();
     if (currentSet && !$("set-screen").hidden) renderSet();
   }
