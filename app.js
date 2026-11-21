@@ -10,7 +10,7 @@
 
   // Sets are kept even after deleting (as { id, deleted: true }) so other devices
   // learn about the delete when they sync.
-  let data = { sets: [], settings: { color: "blue", dark: false, name: "" }, settingsUpdated: 0, days: {} };
+  let data = { sets: [], settings: { color: "blue", dark: false, name: "" }, settingsUpdated: 0, days: {}, stats: {} };
 
   const COLORS = {
     blue:   { pastel: "#cfe0f7", accent: "#3d5a80" },
@@ -98,7 +98,7 @@
   function loadLocal() {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY));
-      if (saved && Array.isArray(saved.sets)) data = { sets: saved.sets, settings: { ...data.settings, ...saved.settings }, settingsUpdated: saved.settingsUpdated || 0, days: saved.days || {} };
+      if (saved && Array.isArray(saved.sets)) data = { sets: saved.sets, settings: { ...data.settings, ...saved.settings }, settingsUpdated: saved.settingsUpdated || 0, days: saved.days || {}, stats: saved.stats || {} };
     } catch { /* nothing saved yet */ }
   }
   function save() {
@@ -214,6 +214,14 @@
     return Object.fromEntries(Object.entries(out).sort().slice(-400));
   }
 
+  // How you've done on each card ({ "setId|cardId": { m: times missed, s: right in a row, t: when } }).
+  // Devices are combined by keeping each card's most recent record.
+  function mergeStats(a = {}, b = {}) {
+    const out = { ...a };
+    for (const [k, v] of Object.entries(b)) if (!out[k] || (v.t || 0) > (out[k].t || 0)) out[k] = v;
+    return Object.fromEntries(Object.entries(out).sort());
+  }
+
   // Used by sync.js: combine the account's copy with this device's, set by set
   // (the most recently changed copy of each set wins).
   window.studydot = {
@@ -230,17 +238,18 @@
         settings: { ...data.settings, ...settings },
         settingsUpdated: Math.max(a.settingsUpdated || 0, b.settingsUpdated || 0),
         days: mergeDays(a.days, b.days),
+        stats: mergeStats(a.stats, b.stats),
       };
     },
     same: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     load(next) {
-      data = { sets: next.sets || [], settings: { ...data.settings, ...next.settings }, settingsUpdated: next.settingsUpdated || 0, days: next.days || {} };
+      data = { sets: next.sets || [], settings: { ...data.settings, ...next.settings }, settingsUpdated: next.settingsUpdated || 0, days: next.days || {}, stats: next.stats || {} };
       ensurePos();
       try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* ignore */ }
       applySettings(); render();
     },
     clearLocal() {
-      data = { sets: [], settings: { color: "blue", dark: false, name: "" }, settingsUpdated: 0, days: {} };
+      data = { sets: [], settings: { color: "blue", dark: false, name: "" }, settingsUpdated: 0, days: {}, stats: {} };
       try { localStorage.removeItem(KEY); } catch { /* ignore */ }
       applySettings(); render();
     },
@@ -289,6 +298,8 @@
     const id = stack.pop();
     if (id) $(id).hidden = true;
     if (!stack.length) document.body.style.overflow = "";
+    // Leaving a study page: refresh what's behind it (tricky words, streak).
+    if (id && $(id).classList.contains("study-screen")) render();
   }
   function closeAll() { while (stack.length) closeScreen(); }
   window.openOverlay = openScreen;
@@ -408,6 +419,9 @@
 
     renderLibrary();
     renderStreak();
+    const tricky = trickyCards().length;
+    $("review-tricky").hidden = !tricky;
+    $("review-tricky").innerHTML = `<span>🎯</span><span><strong>Review ${plural(tricky, "tricky word")}</strong><small>The cards you keep missing, from all your sets</small></span><span class="chev">›</span>`;
     if (currentSet && !$("set-screen").hidden) renderSet();
   }
 
@@ -521,8 +535,11 @@
     $("dir-answer").textContent = zh ? "Meaning" : langName(s.lang2, "Answer");
     $("dir-term").setAttribute("aria-pressed", !s.flip);
     $("dir-answer").setAttribute("aria-pressed", !!s.flip);
+    const tricky = s.shared ? [] : trickyIn(s);
+    $("go-tricky").hidden = !tricky.length;
+    $("go-tricky").innerHTML = `<span>🎯</span><span><strong>Practice your ${plural(tricky.length, "tricky word")}</strong><small>Get each one right twice to clear it</small></span><span class="chev">›</span>`;
     $("set-terms").innerHTML = s.cards.length
-      ? s.cards.map((c) => `<li><span class="t">${esc(c.term)}${zh && c.pin ? `<span class="pin">${esc(c.pin)}</span>` : ""}</span><span class="d">${esc(c.def)}</span></li>`).join("")
+      ? s.cards.map((c) => `<li${isTricky(s, c) ? ' class="is-tricky"' : ""}><span class="t">${esc(c.term)}${zh && c.pin ? `<span class="pin">${esc(c.pin)}</span>` : ""}${isTricky(s, c) ? '<span class="tricky-tag">🎯 tricky</span>' : ""}</span><span class="d">${esc(c.def)}</span></li>`).join("")
       : `<li><span class="muted">No cards yet. Tap Edit to add some.</span></li>`;
   }
   $("dir-seg").addEventListener("click", (e) => {
@@ -764,23 +781,62 @@
     toast("Set deleted");
   });
 
+  /* ---------- tricky words ---------- */
+  // Missing a card makes it "tricky"; getting it right twice in a row clears it.
+  const TRICKY = "tricky";
+  const statKey = (s, c) => `${s.id}|${c.id}`;
+  const statOf = (s, c) => (s && c && data.stats ? data.stats[statKey(s, c)] || null : null);
+  function setStat(s, c, st) {
+    if (!s || !c) return;
+    data.stats = data.stats || {};
+    if (st) data.stats[statKey(s, c)] = st; else delete data.stats[statKey(s, c)];
+  }
+  function track(s, c, ok) {
+    if (!s || !c || s.shared) return;
+    const st = { m: 0, s: 0, ...statOf(s, c), t: Date.now() };
+    if (ok) { st.s += 1; if (st.s >= 2) st.m = 0; } else { st.m += 1; st.s = 0; }
+    if (!st.m && !statOf(s, c)) return; // right on a card never missed: nothing to remember
+    setStat(s, c, st);
+    save();
+  }
+  const isTricky = (s, c) => { const st = statOf(s, c); return !!(st && st.m > 0); };
+  const trickyIn = (s) => (s ? usable(s).filter((c) => isTricky(s, c)) : []);
+  // Every tricky card from all your sets and the Library, most-missed first.
+  function trickyCards() {
+    const out = [];
+    for (const [k, st] of Object.entries(data.stats || {})) {
+      if (!st.m) continue;
+      const [setId, cardId] = k.split("|");
+      const s = findSet(setId);
+      const c = s && usable(s).find((x) => x.id === cardId);
+      if (c) out.push({ ...c, _set: s.id, _m: st.m, _t: st.t });
+    }
+    return out.sort((a, b) => b._m - a._m || b._t - a._t).slice(0, 40);
+  }
+  $("review-tricky").addEventListener("click", () => startCards(TRICKY, shuffle(trickyCards())));
+  $("go-tricky").addEventListener("click", () => { const s = findSet(currentSet); startCards(currentSet, shuffle(trickyIn(s))); });
+
   /* ---------- flashcards ---------- */
   let deck = [], pos = 0, missed = [], got = 0, deckSet = null;
   const usable = (s) => s.cards.filter((c) => c.term && (c.def || (isZh(s) && c.pin)));
+  // id "tricky" is a mixed deck of your tricky cards from every set; each card
+  // then carries its own set id in _set.
+  const cardSet = (c) => findSet((c && c._set) || deckSet);
   function startCards(id, only) {
-    const s = findSet(id);
-    if (!s) return;
-    const cards = only || usable(s);
-    if (!cards.length) { toast("Add some cards with an answer first"); return; }
+    const s = id === TRICKY ? null : findSet(id);
+    if (!s && id !== TRICKY) return;
+    const cards = only || (s ? usable(s) : trickyCards());
+    if (!cards.length) { toast(s ? "Add some cards with an answer first" : "No tricky words right now 🎉"); return; }
     deckSet = id; deck = [...cards]; pos = 0; missed = []; got = 0;
-    s.studied = Date.now(); save(); render();
+    if (s) s.studied = Date.now();
+    save(); render();
     $("cards-play").hidden = false; $("cards-result").hidden = true;
     showCard();
     openScreen("cards-screen");
   }
   function showCard() {
     const c = deck[pos];
-    const sd = sides(findSet(deckSet), c);
+    const sd = sides(cardSet(c), c);
     // Turn the card back to its front instantly (no flip animation), so the next
     // card's answer is never seen while it turns.
     const fc = $("flashcard");
@@ -794,12 +850,13 @@
     $("fc-back-label").textContent = sd.backLabel;
     const [sayFront, sayBack] = document.querySelectorAll("#flashcard .say");
     sayFront.hidden = !canSpeak(sd.qLang);
-    sayBack.hidden = !canSpeak(isZh(findSet(deckSet)) ? "zh" : sd.aLang);
+    sayBack.hidden = !canSpeak(isZh(cardSet(c)) ? "zh" : sd.aLang);
     $("cards-progress").textContent = `${pos + 1} of ${deck.length}`;
     $("cards-bar").style.width = `${(pos / deck.length) * 100}%`;
   }
   function judge(knew) {
     if (knew) got++; else missed.push(deck[pos]);
+    track(cardSet(deck[pos]), deck[pos], knew);
     countCard();
     pos++;
     if (pos < deck.length) { showCard(); return; }
@@ -808,14 +865,17 @@
     $("cards-play").hidden = true; $("cards-result").hidden = false;
     $("cards-emoji").textContent = missed.length ? "💪" : "🎉";
     $("cards-score").textContent = `You knew ${got} of ${deck.length}`;
-    $("cards-msg").textContent = missed.length ? `${plural(missed.length, "card")} to keep practicing.` : "You knew every card. Nice work!";
+    const left = deckSet === TRICKY ? trickyCards().length : 0;
+    $("cards-msg").textContent = missed.length ? `${plural(missed.length, "card")} to keep practicing.`
+      : deckSet === TRICKY ? (left ? `Get each one right twice to clear it. ${plural(left, "tricky word")} left.` : "You cleared every tricky word! 🎉")
+      : "You knew every card. Nice work!";
     $("cards-missed").hidden = !missed.length;
   }
   $("flashcard").addEventListener("click", (e) => {
     const say = e.target.closest(".say");
     if (say) {
       // The speaker button reads that side out loud instead of flipping the card.
-      const s = findSet(deckSet), c = deck[pos], sd = sides(s, c);
+      const c = deck[pos], s = cardSet(c), sd = sides(s, c);
       if (say.dataset.say === "front") speak(sd.q, sd.qLang);
       else if (isZh(s)) speak(c.term, "zh");
       else speak(sd.a, sd.aLang);
@@ -878,6 +938,7 @@
     const buttons = [...$("quiz-choices").children];
     buttons.forEach((x) => { x.disabled = true; if (x.dataset.right) x.classList.add("right"); });
     if (b.dataset.right) right++; else b.classList.add("wrong");
+    track(findSet(quizSet), quiz[qpos], !!b.dataset.right);
     countCard();
     $("quiz-next").textContent = qpos + 1 < quiz.length ? "Next" : "See my score";
     $("quiz-next").hidden = false;
@@ -901,7 +962,7 @@
   $("quiz-back").addEventListener("click", closeScreen);
 
   /* ---------- write: type the answer ---------- */
-  let wlist = [], wpos = 0, wright = 0, wmissed = [], writeSet = null, checked = false, lastWrong = false;
+  let wlist = [], wpos = 0, wright = 0, wmissed = [], writeSet = null, checked = false, lastWrong = false, beforeTrack = null;
   function startWrite(id, only) {
     const s = findSet(id);
     if (!s) return;
@@ -943,6 +1004,8 @@
     const typed = $("write-input").value;
     if (!typed.trim()) { $("write-input").focus(); return; }
     const result = checkAnswer(typed, sd.a, sd.pinyin);
+    beforeTrack = statOf(s, c);
+    track(s, c, result !== "wrong");
     countCard();
     checked = true;
     $("write-input").disabled = true;
@@ -966,6 +1029,11 @@
     lastWrong = false;
     wright++;
     wmissed.pop();
+    // Undo the miss that was just recorded, and count it as right instead.
+    const s = findSet(writeSet), c = wlist[wpos];
+    setStat(s, c, beforeTrack);
+    track(s, c, true);
+    save();
     $("write-override").hidden = true;
     feedback("good", "✓ Counted as right");
     $("write-check").focus();
