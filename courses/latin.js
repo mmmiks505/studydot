@@ -63,6 +63,21 @@
         ["uva", "grape"], ["caro", "meat"], ["prandium", "lunch"], ["ientaculum", "breakfast"],
         ["edere", "to eat"], ["bibere", "to drink"],
       ] },
+      { title: "Question words", cards: [
+        ["quis", "who"], ["quid", "what"], ["ubi", "where"], ["cur", "why"],
+        ["quando", "when"], ["quomodo", "how"], ["quot", "how many"], ["unde", "from where"],
+        ["quo", "to where"], ["quantus", "how great"],
+      ] },
+      { title: "Weather and sky", cards: [
+        ["luna", "moon"], ["pluvia", "rain"], ["tempestas", "weather, storm"], ["tonitrus", "thunder"],
+        ["fulgur", "lightning"], ["grando", "hail"], ["glacies", "ice"], ["frigidus", "cold"],
+        ["calidus", "hot, warm"], ["serenus", "clear, calm"],
+      ] },
+      { title: "Clothing", cards: [
+        ["vestis", "clothing"], ["calceus", "shoe"], ["solea", "sandal"], ["pallium", "cloak"],
+        ["stola", "dress"], ["anulus", "ring"], ["cingulum", "belt"], ["pilleus", "cap"],
+        ["induere", "to put on"], ["exuere", "to take off"],
+      ] },
     ] },
     { name: "Latin 2", units: [
       { title: "Third declension nouns", cards: [
@@ -125,6 +140,21 @@
         ["miliarium", "milestone"], ["sarcina", "pack, bundle"], ["comes", "companion"], ["navigare", "to sail"],
         ["redire", "to return"], ["discedere", "to depart, to leave"],
       ] },
+      { title: "Comparatives and superlatives", cards: [
+        ["melior", "better"], ["optimus", "best"], ["peior", "worse"], ["pessimus", "worst"],
+        ["maior", "bigger, greater"], ["maximus", "biggest, greatest"], ["minor", "smaller"], ["minimus", "smallest"],
+        ["plus", "more"], ["plurimus", "most"],
+      ] },
+      { title: "Third declension i-stem nouns", cards: [
+        ["pars", "part"], ["animal", "animal"], ["ars", "art, skill"], ["gens", "clan, nation"],
+        ["turris", "tower"], ["vis", "force"], ["caedes", "slaughter"], ["sedes", "seat"],
+        ["calcar", "spur"], ["rete", "net"],
+      ] },
+      { title: "Farming and country life", cards: [
+        ["aratrum", "plow"], ["arare", "to plow"], ["bos", "ox"], ["pastor", "shepherd"],
+        ["grex", "flock, herd"], ["pratum", "meadow"], ["vinea", "vineyard"], ["colere", "to cultivate, to till"],
+        ["serere", "to sow"], ["metere", "to reap"],
+      ] },
     ] },
     { name: "Latin 3", units: [
       { title: "Cicero's speeches", cards: [
@@ -171,6 +201,16 @@
         ["medicus", "doctor"], ["morbus", "disease, illness"], ["aeger", "sick, ill"], ["febris", "fever"],
         ["sanguis", "blood"], ["medicina", "medicine"], ["remedium", "remedy, cure"], ["venenum", "poison"],
         ["valetudo", "health"], ["sanare", "to heal"],
+      ] },
+      { title: "Law court verbs", cards: [
+        ["iudicare", "to judge"], ["testari", "to testify"], ["convincere", "to convict"], ["punire", "to punish"],
+        ["iurare", "to swear"], ["probare", "to prove"], ["confiteri", "to confess"], ["ignoscere", "to forgive, to pardon"],
+        ["postulare", "to demand"], ["dubitare", "to doubt"],
+      ] },
+      { title: "Mind and character", cards: [
+        ["indoles", "character"], ["consuetudo", "habit"], ["voluntas", "will"], ["cogitatio", "thought"],
+        ["avaritia", "greed"], ["patientia", "patience"], ["ignavia", "cowardice, laziness"], ["temperantia", "self-control"],
+        ["superbus", "proud"], ["stultus", "foolish"],
       ] },
     ] },
     { name: "Latin 4", units: [
@@ -219,6 +259,16 @@
         ["dispositio", "arrangement"], ["elocutio", "style"], ["pronuntiatio", "delivery"], ["translatio", "metaphor"],
         ["copia", "abundance"], ["persuadere", "to persuade"],
       ] },
+      { title: "Livy's heroes and virtues", cards: [
+        ["fortitudo", "bravery"], ["castitas", "purity"], ["disciplina", "discipline"], ["severitas", "strictness, severity"],
+        ["frugalitas", "thrift"], ["industria", "hard work, diligence"], ["periculum", "danger"], ["decus", "honor"],
+        ["audax", "bold, daring"], ["invictus", "unconquered"],
+      ] },
+      { title: "Poetry and meter", cards: [
+        ["versus", "verse, line"], ["metrum", "meter"], ["syllaba", "syllable"], ["hexameter", "hexameter"],
+        ["dactylus", "dactyl"], ["caesura", "caesura"], ["musa", "muse"], ["lyra", "lyre"],
+        ["elegia", "elegy"], ["poema", "poem"],
+      ] },
     ] },
     { name: "AP Latin", units: [
       { title: "Caesar: De Bello Gallico", cards: [
@@ -266,6 +316,16 @@
         ["Mercurius", "Mercury"], ["Parca", "Fate"], ["sors", "lot"], ["caelestis", "heavenly"],
         ["divinus", "divine"], ["fatalis", "fated"],
       ] },
+      { title: "Caesar: battle verbs", cards: [
+        ["expugnare", "to storm"], ["circumvenire", "to surround"], ["fugare", "to rout"], ["superare", "to overcome, to defeat"],
+        ["interficere", "to kill"], ["obsidere", "to besiege"], ["munire", "to fortify"], ["sustinere", "to withstand"],
+        ["dedere", "to surrender"], ["instruere", "to draw up"],
+      ] },
+      { title: "Vergil: the fall of Troy", cards: [
+        ["Troia", "Troy"], ["Graius", "Greek"], ["Priamus", "Priam"], ["Hector", "Hector"],
+        ["Achilles", "Achilles"], ["arx", "citadel"], ["ruina", "ruin, collapse"], ["incendium", "fire, blaze"],
+        ["machina", "device, machine"], ["excidium", "destruction"],
+      ] },
     ] },
     { name: "Latin 5", units: [
       { title: "Tacitus", cards: [
@@ -308,6 +368,16 @@
         ["observare", "to observe"], ["radius", "ray"], ["nucleus", "kernel"], ["genus", "kind, type"],
         ["stella", "star"], ["orbis", "circle, world"],
       ] },
+      { title: "Latin roots in English", cards: [
+        ["spectare", "to watch, to look at"], ["spirare", "to breathe"], ["fluere", "to flow"], ["claudere", "to close"],
+        ["cadere", "to fall"], ["tangere", "to touch"], ["trahere", "to drag, to pull"], ["struere", "to build"],
+        ["frangere", "to break"], ["pellere", "to push, to drive"],
+      ] },
+      { title: "Church hymns and chant", cards: [
+        ["hymnus", "hymn"], ["psalmus", "psalm"], ["dominus", "lord, master"], ["agnus", "lamb"],
+        ["salvator", "savior"], ["crux", "cross"], ["benedicere", "to bless"], ["misereri", "to have pity"],
+        ["cantus", "song, chant"], ["aeternus", "eternal"],
+      ] },
     ] },
     { name: "IB Latin", units: [
       { title: "Ovid: flight and pursuit", cards: [
@@ -349,6 +419,16 @@
         ["tabellarius", "courier"], ["valere", "to be well"], ["negotium", "business"], ["rumor", "rumor"],
         ["nuntius", "messenger, news"], ["sollicitudo", "anxiety, worry"], ["cura", "care, concern"], ["molestia", "trouble, annoyance"],
         ["exspectare", "to await, to wait for"], ["certus", "certain, sure"],
+      ] },
+      { title: "Seneca: time and the good life", cards: [
+        ["occupatus", "busy"], ["properare", "to hurry"], ["perire", "to perish"], ["praesens", "present"],
+        ["futurus", "future"], ["praeteritus", "past"], ["posteritas", "posterity"], ["luxuria", "luxury"],
+        ["paupertas", "poverty"], ["securitas", "security, peace of mind"],
+      ] },
+      { title: "Roman women in literature", cards: [
+        ["matrona", "matron"], ["uxor", "wife"], ["vidua", "widow"], ["virgo", "maiden"],
+        ["nutrix", "nurse"], ["ancilla", "maidservant"], ["lana", "wool"], ["pudicitia", "chastity"],
+        ["nubere", "to marry"], ["Vestalis", "Vestal"],
       ] },
     ] },
   ],
