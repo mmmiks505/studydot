@@ -78,6 +78,21 @@
         ["stola", "dress"], ["anulus", "ring"], ["cingulum", "belt"], ["pilleus", "cap"],
         ["induere", "to put on"], ["exuere", "to take off"],
       ] },
+      { title: "Verbs of motion", cards: [
+        ["festinare", "to hurry"], ["natare", "to swim"], ["volare", "to fly"], ["errare", "to wander"],
+        ["salire", "to jump"], ["movere", "to move"], ["intrare", "to enter"], ["stare", "to stand"],
+        ["appropinquare", "to approach"], ["ascendere", "to climb"],
+      ] },
+      { title: "Opposites", cards: [
+        ["plenus", "full"], ["vacuus", "empty"], ["facilis", "easy"], ["difficilis", "difficult"],
+        ["celer", "fast, quick"], ["tardus", "slow"], ["latus", "wide"], ["angustus", "narrow"],
+        ["dives", "rich"], ["pauper", "poor"],
+      ] },
+      { title: "The city and buildings", cards: [
+        ["aedificium", "building"], ["murus", "wall"], ["carcer", "prison"], ["aquaeductus", "aqueduct"],
+        ["columna", "column"], ["statua", "statue"], ["tectum", "roof"], ["fenestra", "window"],
+        ["cloaca", "sewer"], ["horreum", "granary"],
+      ] },
     ] },
     { name: "Latin 2", units: [
       { title: "Third declension nouns", cards: [
@@ -155,6 +170,21 @@
         ["grex", "flock, herd"], ["pratum", "meadow"], ["vinea", "vineyard"], ["colere", "to cultivate, to till"],
         ["serere", "to sow"], ["metere", "to reap"],
       ] },
+      { title: "More fourth and fifth declension nouns", cards: [
+        ["res", "thing, matter"], ["species", "appearance"], ["meridies", "noon, midday"], ["facies", "face"],
+        ["lacus", "lake"], ["currus", "chariot"], ["sensus", "feeling, sense"], ["usus", "use"],
+        ["reditus", "return"], ["exitus", "exit, outcome"],
+      ] },
+      { title: "The sea and ships", cards: [
+        ["velum", "sail"], ["remus", "oar"], ["ancora", "anchor"], ["prora", "prow"],
+        ["carina", "keel"], ["gubernator", "helmsman"], ["pirata", "pirate"], ["naufragium", "shipwreck"],
+        ["remigare", "to row"], ["mergere", "to sink"],
+      ] },
+      { title: "Ages of life", cards: [
+        ["infans", "baby"], ["infantia", "infancy"], ["puer", "boy"], ["pueritia", "childhood"],
+        ["adulescentia", "adolescence"], ["iuvenis", "young man"], ["iuventus", "youth"], ["senex", "old man"],
+        ["natalis", "birthday"], ["senescere", "to grow old"],
+      ] },
     ] },
     { name: "Latin 3", units: [
       { title: "Cicero's speeches", cards: [
@@ -211,6 +241,16 @@
         ["indoles", "character"], ["consuetudo", "habit"], ["voluntas", "will"], ["cogitatio", "thought"],
         ["avaritia", "greed"], ["patientia", "patience"], ["ignavia", "cowardice, laziness"], ["temperantia", "self-control"],
         ["superbus", "proud"], ["stultus", "foolish"],
+      ] },
+      { title: "Roman politics and elections", cards: [
+        ["candidatus", "candidate"], ["senator", "senator"], ["proconsul", "proconsul"], ["collega", "colleague"],
+        ["lictor", "lictor"], ["ambitus", "bribery"], ["factio", "faction"], ["decretum", "decree"],
+        ["contio", "assembly"], ["creare", "to elect"],
+      ] },
+      { title: "Verbs of love and friendship", cards: [
+        ["diligere", "to esteem"], ["osculari", "to kiss"], ["amplecti", "to embrace"], ["favere", "to favor"],
+        ["iuvare", "to help"], ["consolari", "to comfort, to console"], ["desiderare", "to long for, to miss"], ["fidere", "to trust"],
+        ["salutare", "to greet"], ["placere", "to please"],
       ] },
     ] },
     { name: "Latin 4", units: [
@@ -269,6 +309,16 @@
         ["dactylus", "dactyl"], ["caesura", "caesura"], ["musa", "muse"], ["lyra", "lyre"],
         ["elegia", "elegy"], ["poema", "poem"],
       ] },
+      { title: "Historians: war and conquest", cards: [
+        ["clades", "disaster, defeat"], ["victoria", "victory"], ["foedus", "treaty"], ["deditio", "surrender"],
+        ["captivus", "prisoner, captive"], ["praeda", "loot, plunder"], ["fuga", "flight"], ["perfuga", "deserter"],
+        ["explorator", "scout"], ["obsidio", "siege"],
+      ] },
+      { title: "Cicero: duty and the good life", cards: [
+        ["decorum", "propriety"], ["moderatio", "moderation"], ["aequitas", "fairness"], ["beneficium", "kindness, favor"],
+        ["liberalitas", "generosity"], ["societas", "fellowship, partnership"], ["magnanimitas", "magnanimity"], ["probitas", "honesty"],
+        ["bonum", "good"], ["turpis", "shameful"],
+      ] },
     ] },
     { name: "AP Latin", units: [
       { title: "Caesar: De Bello Gallico", cards: [
@@ -326,6 +376,16 @@
         ["Achilles", "Achilles"], ["arx", "citadel"], ["ruina", "ruin, collapse"], ["incendium", "fire, blaze"],
         ["machina", "device, machine"], ["excidium", "destruction"],
       ] },
+      { title: "Caesar: speeches and reports", cards: [
+        ["legatio", "embassy"], ["postulatum", "demand"], ["condicio", "condition, term"], ["mandatum", "order, instruction"],
+        ["commentarius", "notebook, record"], ["cohortari", "to encourage"], ["renuntiare", "to report"], ["demonstrare", "to point out"],
+        ["excusare", "to excuse"], ["orare", "to beg, to plead"],
+      ] },
+      { title: "Vergil: similes and nature", cards: [
+        ["apis", "bee"], ["columba", "dove"], ["aquila", "eagle"], ["cervus", "deer, stag"],
+        ["quercus", "oak"], ["pinus", "pine"], ["flos", "flower"], ["fulmen", "thunderbolt"],
+        ["turbo", "whirlwind"], ["imber", "rain, shower"],
+      ] },
     ] },
     { name: "Latin 5", units: [
       { title: "Tacitus", cards: [
@@ -378,6 +438,16 @@
         ["salvator", "savior"], ["crux", "cross"], ["benedicere", "to bless"], ["misereri", "to have pity"],
         ["cantus", "song, chant"], ["aeternus", "eternal"],
       ] },
+      { title: "Scientific names: animals, plants, body", cards: [
+        ["ursus", "bear"], ["vulpes", "fox"], ["felis", "cat"], ["rana", "frog"],
+        ["formica", "ant"], ["herba", "herb, grass"], ["rosa", "rose"], ["cerebrum", "brain"],
+        ["pulmo", "lung"], ["costa", "rib"],
+      ] },
+      { title: "Legal maxims vocabulary", cards: [
+        ["emptor", "buyer"], ["venditor", "seller"], ["cavere", "to beware"], ["ignorantia", "ignorance"],
+        ["nemo", "no one"], ["onus", "burden"], ["actus", "act, deed"], ["innocens", "innocent"],
+        ["nocens", "guilty"], ["pactum", "agreement, pact"],
+      ] },
     ] },
     { name: "IB Latin", units: [
       { title: "Ovid: flight and pursuit", cards: [
@@ -429,6 +499,16 @@
         ["matrona", "matron"], ["uxor", "wife"], ["vidua", "widow"], ["virgo", "maiden"],
         ["nutrix", "nurse"], ["ancilla", "maidservant"], ["lana", "wool"], ["pudicitia", "chastity"],
         ["nubere", "to marry"], ["Vestalis", "Vestal"],
+      ] },
+      { title: "Martial and Juvenal: satire", cards: [
+        ["satura", "satire"], ["heredipeta", "legacy hunter"], ["parasitus", "freeloader"], ["avarus", "greedy"],
+        ["calvus", "bald"], ["ridere", "to laugh"], ["deridere", "to mock"], ["ridiculus", "ridiculous"],
+        ["indignatio", "indignation"], ["turba", "crowd"],
+      ] },
+      { title: "Livy: the founding of Rome", cards: [
+        ["lupa", "she-wolf"], ["geminus", "twin"], ["Romulus", "Romulus"], ["Tiberis", "Tiber"],
+        ["vultur", "vulture"], ["auspicium", "auspice"], ["asylum", "refuge"], ["rapere", "to seize"],
+        ["Sabinus", "Sabine"], ["sulcus", "furrow"],
       ] },
     ] },
   ],
