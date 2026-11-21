@@ -6,6 +6,10 @@
   <title>Studydot</title>
   <meta name="description" content="Studydot: make study sets and learn them with flashcards and quizzes.">
   <meta name="apple-mobile-web-app-title" content="Studydot">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <meta name="theme-color" content="#f5f5f5">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.json">
@@ -109,6 +113,17 @@
         </div>
         <button type="button" id="acct-logout">Log out</button>
       </div>
+    </section>
+    <!-- Get the app: install button (Android, computers) or steps (iPhone) -->
+    <section class="card get-app" id="get-app" hidden>
+      <h2>Get the app</h2>
+      <p class="muted" id="get-app-text">Put Studydot on your home screen. It opens like an app and works without internet.</p>
+      <button type="button" class="primary" id="install-btn" hidden>Install Studydot</button>
+      <ol class="ios-steps" id="ios-steps" hidden>
+        <li>Tap the <strong>Share</strong> button <span aria-hidden="true">⬆️</span> at the bottom of Safari</li>
+        <li>Scroll down and tap <strong>Add to Home Screen</strong></li>
+        <li>Tap <strong>Add</strong></li>
+      </ol>
     </section>
     <section class="card settings">
       <h2>Settings</h2>

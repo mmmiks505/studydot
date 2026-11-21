@@ -1013,6 +1013,35 @@
   ensurePos();
   applySettings();
   render();
+  /* ---------- works offline, installs like an app ---------- */
+  // The offline worker (sw.js) keeps a copy of Studydot on the device. On this computer
+  // (localhost) it's off unless the address has ?offline, so changes show up right away.
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || new URLSearchParams(location.search).has("offline"))) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
+  window.addEventListener("offline", () => toast("You're offline. Studydot still works."));
+  // "Get the app" in Profile: an Install button where the browser offers one
+  // (Android, Chrome and Edge on computers), or Add to Home Screen steps on iPhone/iPad.
+  const installed = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let installPrompt = null;
+  function showGetApp() {
+    const canPrompt = !!installPrompt;
+    $("get-app").hidden = installed() || !(canPrompt || isIOS);
+    $("install-btn").hidden = !canPrompt;
+    $("ios-steps").hidden = canPrompt || !isIOS;
+  }
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installPrompt = e; showGetApp(); });
+  $("install-btn").addEventListener("click", async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    await installPrompt.userChoice.catch(() => null);
+    installPrompt = null;
+    showGetApp();
+  });
+  window.addEventListener("appinstalled", () => { installPrompt = null; showGetApp(); toast("Studydot is installed 🎉"); });
+  showGetApp();
+
   showTab();
   openLink(); // opened from a share link?
   setTimeout(() => { $("splash").remove(); }, 2400);
