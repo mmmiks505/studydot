@@ -10,7 +10,7 @@
 
   // Sets are kept even after deleting (as { id, deleted: true }) so other devices
   // learn about the delete when they sync.
-  let data = { sets: [], settings: { color: "blue", dark: false, name: "" } };
+  let data = { sets: [], settings: { color: "blue", dark: false, name: "" }, settingsUpdated: 0, days: {} };
 
   const COLORS = {
     blue:   { pastel: "#cfe0f7", accent: "#3d5a80" },
@@ -98,7 +98,7 @@
   function loadLocal() {
     try {
       const saved = JSON.parse(localStorage.getItem(KEY));
-      if (saved && Array.isArray(saved.sets)) data = { sets: saved.sets, settings: { ...data.settings, ...saved.settings }, settingsUpdated: saved.settingsUpdated || 0 };
+      if (saved && Array.isArray(saved.sets)) data = { sets: saved.sets, settings: { ...data.settings, ...saved.settings }, settingsUpdated: saved.settingsUpdated || 0, days: saved.days || {} };
     } catch { /* nothing saved yet */ }
   }
   function save() {
@@ -207,6 +207,13 @@
     return true;
   }
 
+  // Cards studied per day ({ "2026-11-20": 12 }). Devices are combined by taking the higher count.
+  function mergeDays(a = {}, b = {}) {
+    const out = { ...a };
+    for (const [d, n] of Object.entries(b)) out[d] = Math.max(out[d] || 0, n);
+    return Object.fromEntries(Object.entries(out).sort().slice(-400));
+  }
+
   // Used by sync.js: combine the account's copy with this device's, set by set
   // (the most recently changed copy of each set wins).
   window.studydot = {
@@ -222,17 +229,18 @@
         sets: [...byId.values()].sort((x, y) => (y.updated || 0) - (x.updated || 0)),
         settings: { ...data.settings, ...settings },
         settingsUpdated: Math.max(a.settingsUpdated || 0, b.settingsUpdated || 0),
+        days: mergeDays(a.days, b.days),
       };
     },
     same: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     load(next) {
-      data = { sets: next.sets || [], settings: { ...data.settings, ...next.settings }, settingsUpdated: next.settingsUpdated || 0 };
+      data = { sets: next.sets || [], settings: { ...data.settings, ...next.settings }, settingsUpdated: next.settingsUpdated || 0, days: next.days || {} };
       ensurePos();
       try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* ignore */ }
       applySettings(); render();
     },
     clearLocal() {
-      data = { sets: [], settings: { color: "blue", dark: false, name: "" } };
+      data = { sets: [], settings: { color: "blue", dark: false, name: "" }, settingsUpdated: 0, days: {} };
       try { localStorage.removeItem(KEY); } catch { /* ignore */ }
       applySettings(); render();
     },
@@ -399,6 +407,7 @@
       </button></li>`).join("");
 
     renderLibrary();
+    renderStreak();
     if (currentSet && !$("set-screen").hidden) renderSet();
   }
 
@@ -791,6 +800,7 @@
   }
   function judge(knew) {
     if (knew) got++; else missed.push(deck[pos]);
+    countCard();
     pos++;
     if (pos < deck.length) { showCard(); return; }
     $("cards-bar").style.width = "100%";
@@ -868,6 +878,7 @@
     const buttons = [...$("quiz-choices").children];
     buttons.forEach((x) => { x.disabled = true; if (x.dataset.right) x.classList.add("right"); });
     if (b.dataset.right) right++; else b.classList.add("wrong");
+    countCard();
     $("quiz-next").textContent = qpos + 1 < quiz.length ? "Next" : "See my score";
     $("quiz-next").hidden = false;
     $("quiz-next").focus();
@@ -932,6 +943,7 @@
     const typed = $("write-input").value;
     if (!typed.trim()) { $("write-input").focus(); return; }
     const result = checkAnswer(typed, sd.a, sd.pinyin);
+    countCard();
     checked = true;
     $("write-input").disabled = true;
     if (result === "right") { wright++; feedback("good", "✓ Correct!"); }
@@ -1008,11 +1020,91 @@
   $("dark-toggle").addEventListener("change", (e) => { data.settings.dark = e.target.checked; applySettings(); settingsChanged(); });
   $("name-input").addEventListener("change", (e) => { data.settings.name = e.target.value.trim(); settingsChanged(); });
 
+  /* ---------- daily streak ---------- */
+  // Study 10 cards in a day (flashcards, quiz answers or written answers) to keep
+  // your streak. Reaching the goal sets off a burst of dots; new badges get a bigger one.
+  const GOAL = 10;
+  const BADGES = [[3, "✨", "Spark"], [7, "🔥", "On fire"], [14, "☄️", "Blazing"], [30, "🚀", "Unstoppable"], [50, "🏆", "Legend"], [100, "💯", "Centurion"], [365, "👑", "Year-long legend"]];
+  const dayKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const daysAgo = (n) => { const d = new Date(); d.setHours(12, 0, 0, 0); d.setDate(d.getDate() - n); return d; };
+  const cardsOn = (n) => (data.days || {})[dayKey(daysAgo(n))] || 0;
+  // Days in a row with the goal met, counting today only once it's met.
+  function streakDays() {
+    let n = 0;
+    for (let i = cardsOn(0) >= GOAL ? 0 : 1; cardsOn(i) >= GOAL; i++) n++;
+    return n;
+  }
+  const badgeFor = (n) => [...BADGES].reverse().find(([days]) => n >= days);
+  let justMet = false; // today's goal was reached a moment ago, so today's dot pops in
+  function renderStreak() {
+    const today = Math.min(cardsOn(0), GOAL);
+    const streak = streakDays();
+    const fill = $("ring-fill");
+    const len = 2 * Math.PI * 19;
+    fill.style.strokeDasharray = len;
+    fill.style.strokeDashoffset = len * (1 - today / GOAL);
+    $("ring").classList.toggle("done", today >= GOAL);
+    $("ring").classList.toggle("just", justMet);
+    $("ring-num").textContent = today >= GOAL ? "✓" : `${today}/${GOAL}`;
+    $("ring").setAttribute("aria-label", `${today} of ${GOAL} cards studied today`);
+    $("streak-count").textContent = streak ? `🔥 ${streak}-day streak` : "Start a streak";
+    const badge = badgeFor(streak);
+    $("streak-badge").hidden = !badge;
+    if (badge) $("streak-badge").textContent = `${badge[1]} ${badge[2]}`;
+    const left = GOAL - today;
+    const next = BADGES.find(([days]) => days > streak);
+    $("streak-msg").textContent =
+      today >= GOAL ? (next && next[0] - streak <= 3 ? `Done for today 🎉 ${next[0] - streak} more ${next[0] - streak === 1 ? "day" : "days"} to unlock ${next[1]} ${next[2]}!` : "Done for today 🎉 See you tomorrow!")
+      : streak ? `${left} more ${left === 1 ? "card" : "cards"} to keep your ${streak}-day streak going!`
+      : today ? `${left} more ${left === 1 ? "card" : "cards"} to start your streak!`
+      : `Study ${GOAL} cards today to start a streak.`;
+    $("week").innerHTML = [6, 5, 4, 3, 2, 1, 0].map((n) => {
+      const c = cardsOn(n), d = daysAgo(n);
+      const cls = c >= GOAL ? "met" : c ? "some" : "";
+      return `<span class="wday ${cls}${n === 0 ? " today" : ""}${n === 0 && justMet ? " new" : ""}" title="${d.toLocaleDateString(undefined, { weekday: "long" })}: ${plural(c, "card")}"><i></i>${d.toLocaleDateString(undefined, { weekday: "narrow" })}</span>`;
+    }).join("");
+  }
+  // Called each time a card is answered while studying.
+  function countCard() {
+    const k = dayKey(new Date());
+    data.days = data.days || {};
+    const before = data.days[k] || 0;
+    data.days[k] = before + 1;
+    save();
+    renderStreak();
+    if (before + 1 === GOAL) {
+      justMet = true; renderStreak(); justMet = false;
+      const streak = streakDays();
+      const badge = BADGES.find(([days]) => days === streak);
+      if (badge) celebrate(`${badge[1]} New badge: ${badge[2]}!`, `${streak} days in a row. Amazing!`, 70);
+      else if (streak === 1) celebrate("🔥 Streak started!", "Come back tomorrow for day 2.", 36);
+      else celebrate(`🔥 Day ${streak}!`, CHEERS[streak % CHEERS.length], 40);
+    }
+  }
+  const CHEERS = ["Keep it going!", "You're on a roll!", "Nice work today!", "Your brain thanks you.", "Look at you go!", "Another day, another dot."];
+  // A burst of colorful dots from the middle of the screen, with a cheer.
+  function celebrate(title, text, count) {
+    const layer = document.createElement("div");
+    layer.className = "burst";
+    layer.setAttribute("aria-live", "polite");
+    const colors = ["#7fb2f0", "#f4a3bd", "#a6dcb5", "#f7d070", "#c9b3f2", "#f8b38a"];
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let dots = "";
+    for (let i = 0; i < (reduce ? 0 : count); i++) {
+      const angle = Math.random() * Math.PI * 2, dist = 90 + Math.random() * 180;
+      dots += `<span class="bdot" style="--x:${Math.cos(angle) * dist}px;--y:${Math.sin(angle) * dist - 60}px;--s:${0.6 + Math.random() * 0.9};background:${colors[i % colors.length]};animation-delay:${Math.random() * 120}ms"></span>`;
+    }
+    layer.innerHTML = `${dots}<div class="cheer"><strong>${esc(title)}</strong><span>${esc(text)}</span></div>`;
+    document.body.append(layer);
+    setTimeout(() => layer.remove(), 2600);
+  }
+
   /* ---------- start ---------- */
   loadLocal();
   ensurePos();
   applySettings();
   render();
+
   /* ---------- works offline, installs like an app ---------- */
   // The offline worker (sw.js) keeps a copy of Studydot on the device. On this computer
   // (localhost) it's off unless the address has ?offline, so changes show up right away.

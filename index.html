@@ -27,6 +27,18 @@
   <!-- Sets: every study set you've made -->
   <main class="view narrow" id="view-sets" data-view="sets">
     <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Sets</h1></header>
+    <!-- Daily streak: today's goal ring, streak count and badge, and this week's dots -->
+    <section class="card streak" id="streak">
+      <div class="ring" id="ring" role="img">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="ring-bg" cx="22" cy="22" r="19"/><circle class="ring-fill" id="ring-fill" cx="22" cy="22" r="19"/></svg>
+        <span class="ring-num" id="ring-num"></span>
+      </div>
+      <div class="streak-info">
+        <div class="streak-top"><strong id="streak-count"></strong><span class="badge-chip" id="streak-badge" hidden></span></div>
+        <p class="small muted" id="streak-msg"></p>
+        <div class="week" id="week" aria-label="This week"></div>
+      </div>
+    </section>
     <section class="card">
       <div class="list-head" id="sets-head">
         <p class="muted" id="sets-count"></p>
