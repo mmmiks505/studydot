@@ -142,6 +142,20 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 .chev { color: var(--muted); font-size: 22px; }
 .empty { text-align: center; padding: 18px 8px 8px; }
 .head-btns { display: flex; gap: 8px; align-items: center; }
+/* sections in the Sets list */
+.sec-head { margin-top: 6px; }
+.sec-head:first-child { margin-top: 0; }
+.sec-head button {
+  width: 100%; justify-content: flex-start; gap: 8px; border: 0; border-radius: 12px; padding: 6px 8px;
+  background: none; color: var(--text); font: 700 15px/1.2 var(--menu-font);
+}
+.sec-head button:hover { background: var(--card-high); }
+.sec-chev { width: 12px; color: var(--muted); }
+.sec-name { flex: 1; text-align: left; }
+.sec-count { font: 700 12px/1 var(--font); color: var(--muted); background: var(--card-high); border-radius: 999px; padding: 3px 8px; }
+.folder-card { display: flex; flex-direction: column; gap: 12px; }
+.folder-card h2 { margin: 0; }
+.folder-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .screen-head .head-btns button { white-space: nowrap; }
 /* Edit mode for the Sets list */
 .edit-bar { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }

@@ -64,6 +64,7 @@
       <ul class="sets" id="sets-list"></ul>
       <div class="edit-actions">
         <button type="button" class="primary" id="mix-selected" hidden disabled>🔀 Study together</button>
+        <button type="button" id="move-selected" hidden disabled>📁 Move to section</button>
         <button type="button" class="danger delete-selected" id="delete-selected" hidden disabled>Delete</button>
       </div>
       <div class="empty" id="sets-empty" hidden>
@@ -389,6 +390,19 @@
       <div class="dialog-actions">
         <button type="button" id="dialog-no">Cancel</button>
         <button type="button" class="primary" id="dialog-yes">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Move sets to a section -->
+  <div class="dialog" id="folder-dialog" hidden>
+    <div class="dialog-card card folder-card" role="dialog" aria-modal="true" aria-labelledby="folder-title">
+      <h2 id="folder-title">Move to…</h2>
+      <div class="folder-chips" id="folder-chips"></div>
+      <label class="field"><span>Or make a new section</span><input id="folder-new" maxlength="40" placeholder="e.g. Final exam"></label>
+      <div class="dialog-actions">
+        <button type="button" id="folder-cancel">Cancel</button>
+        <button type="button" class="primary" id="folder-ok">Move</button>
       </div>
     </div>
   </div>

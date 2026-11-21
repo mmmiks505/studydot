@@ -343,6 +343,71 @@
   }
   window.addEventListener("hashchange", async () => { if (!(await openLink())) showTab(); });
 
+  /* ---------- sections for your sets ---------- */
+  // A set goes in its own section (set.folder) if you picked one, otherwise in an
+  // automatic one by language. Folding a section closed is remembered on this device.
+  const AUTO_SECTIONS = { Mandarin: "🇨🇳", Spanish: "🇪🇸", French: "🇫🇷", Latin: "🏛️", SAT: "📝", Other: "📚" };
+  function sectionOf(x) {
+    if (x.folder) return x.folder;
+    if ((x.from || "").startsWith("sat-")) return "SAT";
+    return { zh: "Mandarin", es: "Spanish", fr: "French", la: "Latin" }[x.lang] || "Other";
+  }
+  const sectionIcon = (name) => AUTO_SECTIONS[name] || "📁";
+  const COLLAPSE_KEY = "studydot:collapsed";
+  let collapsed = new Set();
+  try { collapsed = new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY)) || []); } catch { /* none folded */ }
+  $("sets-list").addEventListener("click", (e) => {
+    const h = e.target.closest("[data-sec]");
+    if (!h) return;
+    const name = h.dataset.sec;
+    if (collapsed.has(name)) collapsed.delete(name); else collapsed.add(name);
+    try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsed])); } catch { /* ignore */ }
+    render();
+  });
+  // "Move to section": pick an existing section, type a new one, or go back to automatic.
+  let folderChoice = "";
+  function openFolderDialog() {
+    const n = selected.size;
+    if (!n) return;
+    const custom = [...new Set(liveSets().map((x) => x.folder).filter(Boolean))];
+    $("folder-title").textContent = `Move ${plural(n, "set")} to…`;
+    $("folder-chips").innerHTML = [
+      `<button type="button" class="chip" data-folder="" aria-checked="true">✨ Automatic</button>`,
+      ...custom.map((f) => `<button type="button" class="chip" data-folder="${esc(f)}" aria-checked="false">📁 ${esc(f)}</button>`),
+    ].join("");
+    folderChoice = "";
+    $("folder-new").value = "";
+    $("folder-dialog").hidden = false;
+  }
+  $("folder-chips").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-folder]");
+    if (!b) return;
+    folderChoice = b.dataset.folder;
+    $("folder-new").value = "";
+    document.querySelectorAll("#folder-chips .chip").forEach((c) => c.setAttribute("aria-checked", c === b));
+  });
+  $("folder-new").addEventListener("input", () => {
+    document.querySelectorAll("#folder-chips .chip").forEach((c) => c.setAttribute("aria-checked", "false"));
+  });
+  $("folder-cancel").addEventListener("click", () => { $("folder-dialog").hidden = true; });
+  $("folder-ok").addEventListener("click", () => {
+    const typed = $("folder-new").value.trim().slice(0, 40);
+    const target = typed || folderChoice;
+    const now = Date.now();
+    liveSets().forEach((x) => {
+      if (!selected.has(x.id)) return;
+      if (target) x.folder = target; else delete x.folder;
+      x.updated = now;
+    });
+    $("folder-dialog").hidden = true;
+    collapsed.delete(target || "");
+    const n = selected.size;
+    selected.clear();
+    save(); render();
+    toast(target ? `Moved ${plural(n, "set")} to ${target}` : `Moved ${plural(n, "set")} back to automatic sections`);
+  });
+  $("move-selected").addEventListener("click", openFolderDialog);
+
   /* ---------- Sets tab ---------- */
   let editMode = false;
   const selected = new Set();
@@ -375,10 +440,15 @@
     }
     const mv = e.target.closest("[data-move]");
     if (!mv) return;
+    // Swap with the next set up or down in the same section.
     const list = liveSets();
-    const i = list.findIndex((s) => s.id === mv.dataset.move), j = i + Number(mv.dataset.dir);
-    if (i < 0 || j < 0 || j >= list.length) return;
-    [list[i], list[j]] = [list[j], list[i]];
+    const me = list.find((x) => x.id === mv.dataset.move);
+    if (!me) return;
+    const sec = list.filter((x) => sectionOf(x) === sectionOf(me));
+    const other = sec[sec.indexOf(me) + Number(mv.dataset.dir)];
+    if (!other) return;
+    const a = list.indexOf(me), b = list.indexOf(other);
+    [list[a], list[b]] = [list[b], list[a]];
     setOrder(list);
   });
   document.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => {
@@ -430,23 +500,37 @@
     $("delete-selected").textContent = selected.size ? `Delete ${plural(selected.size, "set")}` : "Delete";
     $("select-all").textContent = selected.size === sets.length ? "Select none" : "Select all";
     const meta = (s) => `${s.lang && s.lang !== "en" ? `${langName(s.lang)} · ` : ""}${plural(s.cards.length, "card")}${s.studied ? ` · studied ${ago(s.studied)}` : ""}`;
-    $("sets-list").innerHTML = editMode
-      ? sets.map((s, i) => `
+    // Sets are shown in sections: your own (s.folder) or automatic by language.
+    const groups = [];
+    for (const x of sets) {
+      const name = sectionOf(x);
+      let g = groups.find((y) => y.name === name);
+      if (!g) groups.push((g = { name, sets: [] }));
+      g.sets.push(x);
+    }
+    const head = (g) => `<li class="sec-head"><button type="button" data-sec="${esc(g.name)}" aria-expanded="${!collapsed.has(g.name)}">
+        <span class="sec-chev">${collapsed.has(g.name) ? "▸" : "▾"}</span><span class="sec-icon">${sectionIcon(g.name)}</span>
+        <span class="sec-name">${esc(g.name)}</span><span class="sec-count">${g.sets.length}</span></button></li>`;
+    const showHeads = groups.length > 1 || groups.some((g) => !AUTO_SECTIONS[g.name]);
+    $("sets-list").innerHTML = groups.map((g) => (showHeads ? head(g) : "") + (showHeads && collapsed.has(g.name) ? "" : editMode
+      ? g.sets.map((s, i) => `
       <li class="set-row editing${selected.has(s.id) ? " checked" : ""}">
         <label class="check"><input type="checkbox" data-select="${s.id}" ${selected.has(s.id) ? "checked" : ""} aria-label="Select ${esc(s.title)}"><span></span></label>
         <span class="set-info" data-toggle="${s.id}"><span class="set-name">${esc(s.title)}</span><span class="set-meta">${meta(s)}</span></span>
         <span class="move-btns">
           <button type="button" data-move="${s.id}" data-dir="-1" aria-label="Move up" ${i === 0 ? "disabled" : ""}>↑</button>
-          <button type="button" data-move="${s.id}" data-dir="1" aria-label="Move down" ${i === sets.length - 1 ? "disabled" : ""}>↓</button>
+          <button type="button" data-move="${s.id}" data-dir="1" aria-label="Move down" ${i === g.sets.length - 1 ? "disabled" : ""}>↓</button>
         </span>
       </li>`).join("")
-      : sets.map((s) => `
+      : g.sets.map((s) => `
       <li><button type="button" class="set-row" data-open="${s.id}">
         <span class="set-badge">${esc((s.title.trim()[0] || "?").toLowerCase())}</span>
         <span class="set-info"><span class="set-name">${esc(s.title)}</span>
           <span class="set-meta">${meta(s)}</span></span>
         <span class="chev" aria-hidden="true">›</span>
-      </button></li>`).join("");
+      </button></li>`).join(""))).join("");
+    $("move-selected").hidden = !editMode;
+    $("move-selected").disabled = !selected.size;
 
     renderLibrary();
     renderStreak();
