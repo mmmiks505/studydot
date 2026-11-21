@@ -144,6 +144,69 @@
     toast(`Added "${src.title}" to your sets`);
   }
 
+  /* ---------- sharing a set with a link ---------- */
+  // The whole set is packed into the link itself (compressed), so sharing needs no
+  // account and nothing is stored online. Library sets just link to their id.
+  const SITE = "https://mmmiks505.github.io/studydot/";
+  const toB64 = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  const fromB64 = (str) => Uint8Array.from(atob(str.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+  async function pipe(bytes, stream) { return new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(stream)).arrayBuffer()); }
+  async function packSet(s) {
+    const json = JSON.stringify({ t: s.title, l: s.lang || "", l2: s.lang2 || "", c: s.cards.map((c) => (c.pin ? [c.term, c.def, c.pin] : [c.term, c.def])) });
+    const bytes = new TextEncoder().encode(json);
+    if ("CompressionStream" in window) {
+      try { return "z" + toB64(await pipe(bytes, new CompressionStream("deflate-raw"))); } catch { /* fall back below */ }
+    }
+    return "j" + toB64(bytes);
+  }
+  async function unpackSet(code) {
+    let bytes = fromB64(code.slice(1));
+    if (code[0] === "z") bytes = await pipe(bytes, new DecompressionStream("deflate-raw"));
+    const p = JSON.parse(new TextDecoder().decode(bytes));
+    if (!p || typeof p.t !== "string" || !Array.isArray(p.c)) throw new Error("bad link");
+    return p;
+  }
+  // A short fingerprint of a shared set, so adding the same link twice is noticed.
+  const fingerprint = (str) => { let h = 5381; for (const ch of str) h = ((h * 33) ^ ch.charCodeAt(0)) >>> 0; return h.toString(36); };
+  async function shareSet(s) {
+    let url;
+    try { url = SITE + (s.builtIn && !s.shared ? `#open=${s.id}` : `#share=${await packSet(s)}`); }
+    catch { toast("Couldn't make a link for this set"); return; }
+    const text = `Study "${s.title}" with me on Studydot`;
+    if (navigator.share && matchMedia("(pointer: coarse)").matches) {
+      try { await navigator.share({ title: s.title, text, url }); return; } catch (e) { if (e && e.name === "AbortError") return; }
+    }
+    try { await navigator.clipboard.writeText(url); toast("Link copied. Paste it to share."); }
+    catch { window.prompt("Copy this link to share the set:", url); }
+  }
+  // Opening a shared link shows the set; you can study it or add it to your sets.
+  async function openLink() {
+    const hash = location.hash.slice(1);
+    const clear = () => history.replaceState(null, "", location.pathname + location.search + "#sets");
+    if (hash.startsWith("open=")) {
+      const id = decodeURIComponent(hash.slice(5));
+      clear(); showTab();
+      if (findSet(id)) openSet(id); else toast("That set isn't available anymore");
+      return true;
+    }
+    if (!hash.startsWith("share=")) return false;
+    const code = hash.slice(6);
+    clear(); showTab();
+    try {
+      const p = await unpackSet(code);
+      const id = "share-" + fingerprint(code);
+      if (!BUILT_IN.some((s) => s.id === id)) {
+        BUILT_IN.push({ id, builtIn: true, shared: true, title: p.t, lang: p.l, lang2: p.l2,
+          cards: p.c.filter((x) => Array.isArray(x) && x.length >= 2).map((x, i) => ({ id: `${id}-${i}`, term: String(x[0]), def: String(x[1]), ...(x[2] ? { pin: String(x[2]) } : {}) })) });
+      }
+      openSet(id);
+      toast("Someone shared this set with you");
+    } catch {
+      toast("This share link looks broken. Ask for a new one.");
+    }
+    return true;
+  }
+
   // Used by sync.js: combine the account's copy with this device's, set by set
   // (the most recently changed copy of each set wins).
   window.studydot = {
@@ -241,7 +304,7 @@
     });
     window.scrollTo(0, 0);
   }
-  window.addEventListener("hashchange", showTab);
+  window.addEventListener("hashchange", async () => { if (!(await openLink())) showTab(); });
 
   /* ---------- Sets tab ---------- */
   let editMode = false;
@@ -482,6 +545,7 @@
       ask: aLang && LANGS[aLang] && aLang !== qLang ? `What is it in ${LANGS[aLang].name}?` : qLang ? "What does this mean?" : "Pick the right answer" };
   }
   $("set-back").addEventListener("click", closeScreen);
+  $("set-share").addEventListener("click", () => { const s = findSet(currentSet); if (s) shareSet(s); });
   $("set-edit").addEventListener("click", () => {
     const s = findSet(currentSet);
     if (s && s.builtIn) saveCopy(s.id); else openEditor(currentSet);
@@ -950,5 +1014,6 @@
   applySettings();
   render();
   showTab();
+  openLink(); // opened from a share link?
   setTimeout(() => { $("splash").remove(); }, 2400);
 })();

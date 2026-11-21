@@ -141,7 +141,8 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 .set-meta { color: var(--muted); font-size: 13px; font-weight: 500; }
 .chev { color: var(--muted); font-size: 22px; }
 .empty { text-align: center; padding: 18px 8px 8px; }
-.head-btns { display: flex; gap: 8px; }
+.head-btns { display: flex; gap: 8px; align-items: center; }
+.screen-head .head-btns button { white-space: nowrap; }
 /* Edit mode for the Sets list */
 .edit-bar { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
 .edit-bar .list-head { margin-bottom: 0; }
