@@ -564,6 +564,8 @@
     fillLangSelect($("edit-lang"), s ? s.lang : "");
     fillLangSelect($("edit-lang2"), s ? s.lang2 : "");
     $("edit-accents").hidden = true;
+    $("paste-box").hidden = true;
+    $("paste-open").hidden = false;
     $("edit-delete").hidden = !s;
     const list = $("edit-cards");
     list.innerHTML = "";
@@ -604,6 +606,63 @@
   }
   $("add-card").addEventListener("click", addCard);
   $("edit-cancel").addEventListener("click", closeScreen);
+
+  /* ---------- paste a list ---------- */
+  // Turns pasted lines like "perro - dog" into cards. The separator is whichever of
+  // these most lines use: tab (spreadsheets, Quizlet), dash, =, colon, or comma.
+  // Mandarin lines can have three parts: "狗 - gǒu - dog" or "狗 gǒu - dog".
+  const SEPARATORS = ["\t", " — ", " – ", " - ", " = ", "=", " : ", ": ", ":", " -", "- ", ","];
+  function parseList(text, zh) {
+    const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    if (!lines.length) return [];
+    const main = SEPARATORS.find((s) => lines.filter((l) => l.includes(s)).length >= Math.ceil(lines.length / 2));
+    return lines.map((line) => {
+      // Use the list's main separator, or this line's own if it's written differently.
+      const sep = main && line.includes(main) ? main : SEPARATORS.find((s) => line.includes(s));
+      if (!sep) return null;
+      const at = line.indexOf(sep);
+      if (at < 0) return null;
+      const term = line.slice(0, at).trim();
+      let rest = line.slice(at + sep.length).trim();
+      if (!term || !rest) return null;
+      if (!zh) return { term, def: rest };
+      // Mandarin: character, pinyin, meaning.
+      const second = rest.indexOf(sep);
+      if (second >= 0) return { term, pin: numberedToMarks(rest.slice(0, second).trim()), def: rest.slice(second + sep.length).trim() };
+      const m = term.match(/^([\p{Script=Han}]+)\s+(.+)$/u);
+      if (m) return { term: m[1], pin: numberedToMarks(m[2]), def: rest };
+      return { term, def: rest };
+    }).filter(Boolean);
+  }
+  function updatePaste() {
+    const n = parseList($("paste-text").value, $("edit-lang").value === "zh").length;
+    $("paste-add").disabled = !n;
+    $("paste-add").textContent = n ? `Add ${plural(n, "card")}` : "Add cards";
+  }
+  $("paste-open").addEventListener("click", () => {
+    $("paste-box").hidden = false;
+    $("paste-open").hidden = true;
+    $("paste-text").value = "";
+    $("paste-hint").textContent = $("edit-lang").value === "zh"
+      ? "One card per line: character, pinyin and meaning with a dash or tab between them, like 狗 - gou3 - dog."
+      : "Put a dash, =, colon or tab between each word and its meaning. Lists copied from a spreadsheet or Quizlet work too.";
+    updatePaste();
+    $("paste-text").focus();
+  });
+  $("paste-text").addEventListener("input", updatePaste);
+  function closePaste() { $("paste-box").hidden = true; $("paste-open").hidden = false; }
+  $("paste-cancel").addEventListener("click", closePaste);
+  $("paste-add").addEventListener("click", () => {
+    const cards = parseList($("paste-text").value, $("edit-lang").value === "zh");
+    if (!cards.length) return;
+    const list = $("edit-cards");
+    // Empty cards are replaced by the pasted ones; cards already typed stay.
+    [...list.children].forEach((li) => { if (![...li.querySelectorAll("textarea")].some((t) => t.value.trim())) li.remove(); });
+    cards.forEach((c) => list.append(cardRow({ id: uid(), ...c })));
+    list.querySelectorAll("textarea").forEach(grow);
+    closePaste();
+    toast(`Added ${plural(cards.length, "card")}`);
+  });
   $("edit-form").addEventListener("submit", (e) => { e.preventDefault(); saveEditor(); });
   $("edit-save").addEventListener("click", saveEditor);
   function saveEditor() {

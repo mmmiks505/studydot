@@ -231,6 +231,11 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outlin
 .edit-card-head button { border: 0; padding: 2px 8px; color: var(--muted); font-size: 18px; }
 .edit-card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .add-card { border-style: dashed; padding: 14px; border-radius: 20px; }
+.paste-btn { align-self: flex-start; }
+.paste-box { display: flex; flex-direction: column; gap: 8px; }
+.paste-box textarea { min-height: 140px; resize: vertical; font-size: 15px; }
+.paste-box .muted { margin: 0; }
+.paste-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* ---------- studying ---------- */
 .progress-text { font-weight: 700; color: var(--muted); font-size: 14px; }

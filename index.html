@@ -172,6 +172,18 @@
             <label class="field"><span>Answer language</span><select id="edit-lang2"></select></label>
           </div>
         </div>
+        <button type="button" class="paste-btn" id="paste-open">📋 Paste a list</button>
+        <div class="card paste-box" id="paste-box" hidden>
+          <label class="field">
+            <span>Paste your list, one card per line</span>
+            <textarea id="paste-text" rows="6" placeholder="perro - dog&#10;gato - cat&#10;libro - book"></textarea>
+          </label>
+          <p class="small muted" id="paste-hint">Put a dash, =, colon or tab between each word and its meaning. Lists copied from a spreadsheet or Quizlet work too.</p>
+          <div class="paste-actions">
+            <button type="button" id="paste-cancel">Cancel</button>
+            <button type="button" class="primary" id="paste-add" disabled>Add cards</button>
+          </div>
+        </div>
         <ol class="edit-cards" id="edit-cards"></ol>
         <button type="button" class="add-card" id="add-card">+ Add a card</button>
         <button type="button" class="danger" id="edit-delete" hidden>Delete this set</button>
