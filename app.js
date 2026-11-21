@@ -105,7 +105,17 @@
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* storage full or blocked */ }
     if (window.studydotSync) window.studydotSync.queue();
   }
-  const liveSets = () => data.sets.filter((s) => !s.deleted);
+  // Your sets are shown in their saved order (each set's "pos"; lower comes first),
+  // which you can change in Edit mode. New sets go to the top.
+  const byPos = (a, b) => (a.pos ?? 0) - (b.pos ?? 0);
+  const liveSets = () => data.sets.filter((s) => !s.deleted).sort(byPos);
+  const topPos = () => Math.min(0, ...data.sets.filter((s) => !s.deleted && s.pos != null).map((s) => s.pos)) - 1;
+  // Older sets made before ordering existed get a place, newest first, above the rest.
+  function ensurePos() {
+    const missing = data.sets.filter((s) => !s.deleted && s.pos == null).sort((a, b) => (a.updated || 0) - (b.updated || 0));
+    missing.forEach((s) => { s.pos = topPos(); });
+    data.sets.forEach((s) => { if (!s.deleted && !s.created) s.created = s.updated || Date.now(); });
+  }
   const SAT = window.SAT_SETS || [];
   // Ready-made language units (courses/*.js): one set per unit, grouped by language and level.
   const COURSES = window.COURSES || [];
@@ -127,7 +137,7 @@
     const src = BUILT_IN.find((s) => s.id === id);
     if (!src) return;
     if (addedCopy(id)) { toast("It's already in your sets"); return; }
-    const copy = { id: uid(), from: src.id, title: src.title, lang: src.lang, lang2: src.lang2, updated: Date.now(),
+    const copy = { id: uid(), pos: topPos(), created: Date.now(), from: src.id, title: src.title, lang: src.lang, lang2: src.lang2, updated: Date.now(),
       cards: src.cards.map((c) => ({ id: uid(), term: c.term, def: c.def, ...(c.pin ? { pin: c.pin } : {}) })) };
     data.sets.unshift(copy);
     save(); render();
@@ -154,6 +164,7 @@
     same: (a, b) => JSON.stringify(a) === JSON.stringify(b),
     load(next) {
       data = { sets: next.sets || [], settings: { ...data.settings, ...next.settings }, settingsUpdated: next.settingsUpdated || 0 };
+      ensurePos();
       try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* ignore */ }
       applySettings(); render();
     },
@@ -230,16 +241,94 @@
   window.addEventListener("hashchange", showTab);
 
   /* ---------- Sets tab ---------- */
+  let editMode = false;
+  const selected = new Set();
+  // Save a new order: each set's place in the list becomes its "pos".
+  function setOrder(list) {
+    const now = Date.now();
+    list.forEach((s, i) => { if (s.pos !== i) { s.pos = i; s.updated = now; } });
+    save(); render();
+  }
+  $("edit-sets").addEventListener("click", () => { editMode = true; selected.clear(); render(); });
+  $("edit-done").addEventListener("click", () => { editMode = false; selected.clear(); render(); });
+  $("select-all").addEventListener("click", () => {
+    const sets = liveSets();
+    if (selected.size === sets.length) selected.clear(); else sets.forEach((s) => selected.add(s.id));
+    render();
+  });
+  $("sets-list").addEventListener("change", (e) => {
+    const box = e.target.closest("[data-select]");
+    if (!box) return;
+    if (box.checked) selected.add(box.dataset.select); else selected.delete(box.dataset.select);
+    render();
+  });
+  $("sets-list").addEventListener("click", (e) => {
+    const toggle = e.target.closest("[data-toggle]");
+    if (toggle) {
+      const id = toggle.dataset.toggle;
+      if (selected.has(id)) selected.delete(id); else selected.add(id);
+      render();
+      return;
+    }
+    const mv = e.target.closest("[data-move]");
+    if (!mv) return;
+    const list = liveSets();
+    const i = list.findIndex((s) => s.id === mv.dataset.move), j = i + Number(mv.dataset.dir);
+    if (i < 0 || j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    setOrder(list);
+  });
+  document.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => {
+    const list = liveSets();
+    const sorts = {
+      az: (a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base", numeric: true }),
+      new: (a, b) => (b.created || 0) - (a.created || 0),
+      studied: (a, b) => (b.studied || 0) - (a.studied || 0),
+    };
+    setOrder(list.sort(sorts[b.dataset.sort]));
+    toast(`Sorted ${b.textContent}`);
+  }));
+  $("delete-selected").addEventListener("click", async () => {
+    const n = selected.size;
+    if (!n) return;
+    const names = liveSets().filter((s) => selected.has(s.id)).map((s) => `"${s.title}"`);
+    const what = n === 1 ? names[0] : plural(n, "set");
+    if (!(await askConfirm(`Delete ${what}? This can't be undone.`, "Delete"))) return;
+    const now = Date.now();
+    data.sets = data.sets.map((x) => (selected.has(x.id) ? { id: x.id, deleted: true, updated: now } : x));
+    selected.clear();
+    save(); render();
+    toast(n === 1 ? "Set deleted" : `${n} sets deleted`);
+  });
+
   function render() {
     const sets = liveSets();
     $("sets-count").textContent = sets.length ? plural(sets.length, "set") : "";
     $("sets-empty").hidden = sets.length > 0;
-    $("new-set").hidden = sets.length === 0;
-    $("sets-list").innerHTML = sets.map((s) => `
+    if (!sets.length) editMode = false;
+    $("sets-head").hidden = editMode || !sets.length;
+    $("edit-bar").hidden = !editMode;
+    $("delete-selected").hidden = !editMode;
+    selected.forEach((id) => { if (!findSet(id) || findSet(id).builtIn) selected.delete(id); });
+    $("delete-selected").disabled = !selected.size;
+    $("delete-selected").textContent = selected.size ? `Delete ${plural(selected.size, "set")}` : "Delete";
+    $("select-all").textContent = selected.size === sets.length ? "Select none" : "Select all";
+    const meta = (s) => `${s.lang && s.lang !== "en" ? `${langName(s.lang)} · ` : ""}${plural(s.cards.length, "card")}${s.studied ? ` · studied ${ago(s.studied)}` : ""}`;
+    $("sets-list").innerHTML = editMode
+      ? sets.map((s, i) => `
+      <li class="set-row editing${selected.has(s.id) ? " checked" : ""}">
+        <label class="check"><input type="checkbox" data-select="${s.id}" ${selected.has(s.id) ? "checked" : ""} aria-label="Select ${esc(s.title)}"><span></span></label>
+        <span class="set-info" data-toggle="${s.id}"><span class="set-name">${esc(s.title)}</span><span class="set-meta">${meta(s)}</span></span>
+        <span class="move-btns">
+          <button type="button" data-move="${s.id}" data-dir="-1" aria-label="Move up" ${i === 0 ? "disabled" : ""}>↑</button>
+          <button type="button" data-move="${s.id}" data-dir="1" aria-label="Move down" ${i === sets.length - 1 ? "disabled" : ""}>↓</button>
+        </span>
+      </li>`).join("")
+      : sets.map((s) => `
       <li><button type="button" class="set-row" data-open="${s.id}">
         <span class="set-badge">${esc((s.title.trim()[0] || "?").toLowerCase())}</span>
         <span class="set-info"><span class="set-name">${esc(s.title)}</span>
-          <span class="set-meta">${s.lang && s.lang !== "en" ? `${langName(s.lang)} · ` : ""}${plural(s.cards.length, "card")}${s.studied ? ` · studied ${ago(s.studied)}` : ""}</span></span>
+          <span class="set-meta">${meta(s)}</span></span>
         <span class="chev" aria-hidden="true">›</span>
       </button></li>`).join("");
 
@@ -345,7 +434,7 @@
   $("empty-sample").addEventListener("click", () => {
     const now = Date.now();
     data.sets.unshift({
-      id: uid(), title: "Spanish basics", lang: "es", lang2: "en", updated: now,
+      id: uid(), pos: topPos(), created: now, title: "Spanish basics", lang: "es", lang2: "en", updated: now,
       cards: [
         ["hola", "hello"], ["gracias", "thank you"], ["por favor", "please"], ["adiós", "goodbye"],
         ["perro", "dog"], ["gato", "cat"], ["agua", "water"], ["libro", "book"],
@@ -547,7 +636,7 @@
     const now = Date.now();
     let s = editing ? findSet(editing) : null;
     if (s) Object.assign(s, { title, cards, lang, lang2, updated: now });
-    else { s = { id: uid(), title, cards, lang, lang2, updated: now }; data.sets.unshift(s); }
+    else { s = { id: uid(), pos: topPos(), created: now, title, cards, lang, lang2, updated: now }; data.sets.unshift(s); }
     save(); render();
     closeScreen();
     if (!editing) openSet(s.id);
@@ -817,6 +906,7 @@
 
   /* ---------- start ---------- */
   loadLocal();
+  ensurePos();
   applySettings();
   render();
   showTab();

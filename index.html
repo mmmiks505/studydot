@@ -24,11 +24,28 @@
   <main class="view narrow" id="view-sets" data-view="sets">
     <header class="topbar"><a href="#sets" class="corner-logo" aria-label="Studydot home"><span class="logo-s">s</span><span class="logo-dot"></span></a><h1>Sets</h1></header>
     <section class="card">
-      <div class="list-head">
+      <div class="list-head" id="sets-head">
         <p class="muted" id="sets-count"></p>
-        <button type="button" class="add-btn" id="new-set">+ New set</button>
+        <div class="head-btns">
+          <button type="button" id="edit-sets">Edit</button>
+          <button type="button" class="add-btn" id="new-set">+ New set</button>
+        </div>
+      </div>
+      <!-- Edit mode: select, delete, move and sort your sets -->
+      <div class="edit-bar" id="edit-bar" hidden>
+        <div class="list-head">
+          <button type="button" class="link-btn" id="select-all">Select all</button>
+          <button type="button" class="primary" id="edit-done">Done</button>
+        </div>
+        <div class="sort-row">
+          <span class="small muted">Sort</span>
+          <button type="button" data-sort="az">A–Z</button>
+          <button type="button" data-sort="new">Newest</button>
+          <button type="button" data-sort="studied">Last studied</button>
+        </div>
       </div>
       <ul class="sets" id="sets-list"></ul>
+      <button type="button" class="danger delete-selected" id="delete-selected" hidden disabled>Delete</button>
       <div class="empty" id="sets-empty" hidden>
         <p class="empty-big">📚</p>
         <h2>No study sets yet</h2>
