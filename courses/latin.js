@@ -33,6 +33,21 @@
         ["velle", "to want"], ["nolle", "to be unwilling"], ["malle", "to prefer"], ["fieri", "to become"],
         ["abesse", "to be away, to be absent"], ["adesse", "to be present"],
       ] },
+      { title: "Body and daily life", cards: [
+        ["caput", "head"], ["oculus", "eye"], ["auris", "ear"], ["dens", "tooth"],
+        ["lingua", "tongue, language"], ["bracchium", "arm"], ["pes", "foot"], ["cor", "heart"],
+        ["cibus", "food"], ["somnus", "sleep"],
+      ] },
+      { title: "Adverbs and conjunctions", cards: [
+        ["et", "and"], ["sed", "but"], ["nam", "for"], ["quia", "because"],
+        ["non", "not"], ["semper", "always"], ["numquam", "never"], ["saepe", "often"],
+        ["iam", "now, already"], ["tum", "then"],
+      ] },
+      { title: "Animals", cards: [
+        ["equus", "horse"], ["canis", "dog"], ["lupus", "wolf"], ["avis", "bird"],
+        ["piscis", "fish"], ["leo", "lion"], ["taurus", "bull"], ["ovis", "sheep"],
+        ["vacca", "cow"], ["serpens", "snake"],
+      ] },
     ] },
     { name: "Latin 2", units: [
       { title: "Third declension nouns", cards: [
@@ -65,6 +80,21 @@
         ["hic", "this"], ["ille", "that"], ["iste", "that of yours"], ["ipse", "self"],
         ["idem", "the same"], ["qui", "who, which"],
       ] },
+      { title: "Gods and religion", cards: [
+        ["templum", "temple"], ["ara", "altar"], ["sacerdos", "priest"], ["sacrificium", "sacrifice"],
+        ["victima", "victim"], ["votum", "vow"], ["oraculum", "oracle"], ["sacer", "sacred"],
+        ["immortalis", "immortal"], ["precari", "to pray"],
+      ] },
+      { title: "Time words", cards: [
+        ["hora", "hour"], ["annus", "year"], ["mensis", "month"], ["hiems", "winter"],
+        ["ver", "spring"], ["aestas", "summer"], ["autumnus", "autumn"], ["hodie", "today"],
+        ["heri", "yesterday"], ["cras", "tomorrow"],
+      ] },
+      { title: "Third -io and fourth conjugation verbs", cards: [
+        ["capere", "to take, to seize"], ["facere", "to make, to do"], ["iacere", "to throw"], ["accipere", "to receive"],
+        ["cupere", "to want, to desire"], ["audire", "to hear"], ["venire", "to come"], ["dormire", "to sleep"],
+        ["scire", "to know"], ["invenire", "to find"],
+      ] },
     ] },
     { name: "Latin 3", units: [
       { title: "Cicero's speeches", cards: [
@@ -91,6 +121,16 @@
         ["gaudium", "joy"], ["laetitia", "happiness, joy"], ["ira", "anger"], ["timor", "fear"],
         ["invidia", "envy"], ["luctus", "grief, mourning"], ["desiderium", "longing, desire"], ["pudor", "shame"],
         ["odium", "hatred"], ["misericordia", "pity"],
+      ] },
+      { title: "Roman daily life", cards: [
+        ["forum", "forum, marketplace"], ["taberna", "shop, inn"], ["balneum", "bath"], ["toga", "toga"],
+        ["tunica", "tunic"], ["lectus", "couch, bed"], ["mensa", "table"], ["panis", "bread"],
+        ["cliens", "client"], ["patronus", "patron"],
+      ] },
+      { title: "Verbs of saying and thinking", cards: [
+        ["putare", "to think, to suppose"], ["credere", "to believe, to trust"], ["sperare", "to hope"], ["negare", "to deny"],
+        ["narrare", "to tell"], ["respondere", "to answer, to reply"], ["nuntiare", "to announce, to report"], ["intellegere", "to understand"],
+        ["meminisse", "to remember"], ["oblivisci", "to forget"],
       ] },
     ] },
     { name: "Latin 4", units: [
@@ -119,6 +159,16 @@
         ["censor", "censor"], ["suffragium", "vote"], ["imperium", "command, power"], ["provincia", "province"],
         ["populus", "people"], ["curia", "senate house"],
       ] },
+      { title: "Roman law", cards: [
+        ["ius", "right, law"], ["iniuria", "wrong, injury"], ["testamentum", "will"], ["heres", "heir"],
+        ["damnare", "to condemn"], ["absolvere", "to acquit"], ["sententia", "verdict, opinion"], ["fraus", "fraud, deceit"],
+        ["furtum", "theft"], ["fur", "thief"],
+      ] },
+      { title: "Philosophy", cards: [
+        ["veritas", "truth"], ["scientia", "knowledge"], ["opinio", "opinion, belief"], ["disputare", "to discuss, to argue"],
+        ["quaerere", "to seek, to ask"], ["cognoscere", "to learn, to get to know"], ["doctrina", "teaching, learning"], ["ingenium", "talent, intellect"],
+        ["mens", "mind"], ["finis", "end, limit"],
+      ] },
     ] },
     { name: "AP Latin", units: [
       { title: "Caesar: De Bello Gallico", cards: [
@@ -146,6 +196,16 @@
         ["culpa", "fault, blame"], ["fama", "rumor, fame"], ["antrum", "cave"], ["infelix", "unhappy, unlucky"],
         ["perfidus", "treacherous"], ["coniugium", "marriage"],
       ] },
+      { title: "High-frequency Caesar and Vergil verbs", cards: [
+        ["iubere", "to order"], ["cogere", "to force, to collect"], ["conari", "to try"], ["hortari", "to encourage, to urge"],
+        ["pervenire", "to arrive, to reach"], ["constituere", "to decide"], ["resistere", "to resist"], ["tendere", "to stretch, to strive"],
+        ["ruere", "to rush, to fall"], ["volvere", "to roll"],
+      ] },
+      { title: "Vergil: nature and the sea", cards: [
+        ["fluctus", "wave"], ["pontus", "sea"], ["saxum", "rock"], ["scopulus", "cliff, crag"],
+        ["harena", "sand"], ["ratis", "raft, ship"], ["tellus", "earth, land"], ["aura", "breeze, air"],
+        ["portus", "harbor"], ["puppis", "stern, ship"],
+      ] },
     ] },
     { name: "Latin 5", units: [
       { title: "Tacitus", cards: [
@@ -168,6 +228,16 @@
         ["monasterium", "monastery"], ["sanctus", "holy"], ["peccatum", "sin"], ["angelus", "angel"],
         ["papa", "pope"], ["baptizare", "to baptize"],
       ] },
+      { title: "Legal and medical Latin in English", cards: [
+        ["bona fide", "in good faith"], ["de facto", "in fact"], ["ad hoc", "for this"], ["per se", "by itself"],
+        ["alibi", "elsewhere"], ["subpoena", "under penalty"], ["post mortem", "after death"], ["in vitro", "in glass"],
+        ["placebo", "I will please"], ["rigor mortis", "stiffness of death"],
+      ] },
+      { title: "Augustine: Confessions", cards: [
+        ["confessio", "confession"], ["gratia", "grace"], ["caritas", "charity, love"], ["superbia", "pride"],
+        ["humilitas", "humility"], ["memoria", "memory"], ["aeternitas", "eternity"], ["creator", "creator"],
+        ["quies", "rest"], ["convertere", "to turn, to convert"],
+      ] },
     ] },
     { name: "IB Latin", units: [
       { title: "Ovid: flight and pursuit", cards: [
@@ -189,6 +259,16 @@
         ["sodalis", "comrade, companion"], ["libellus", "little book"], ["phaselus", "yacht"], ["iocus", "joke"],
         ["ineptus", "silly, foolish"], ["cachinnus", "laughter"], ["perdere", "to lose, to destroy"], ["desinere", "to stop, to cease"],
         ["obdurare", "to endure"], ["venustus", "lovely, charming"],
+      ] },
+      { title: "Pliny and Martial", cards: [
+        ["epigramma", "epigram"], ["lector", "reader"], ["conviva", "dinner guest"], ["nummus", "coin"],
+        ["sportula", "handout"], ["recitatio", "public reading"], ["eruptio", "eruption"], ["tremor", "trembling, shaking"],
+        ["supplicium", "punishment, execution"], ["salsus", "witty, salty"],
+      ] },
+      { title: "Love elegy", cards: [
+        ["domina", "mistress"], ["amator", "lover"], ["rivalis", "rival"], ["ianua", "door"],
+        ["limen", "threshold"], ["militia", "military service"], ["queri", "to complain"], ["flere", "to weep"],
+        ["ardere", "to burn"], ["durus", "hard, harsh"],
       ] },
     ] },
   ],
